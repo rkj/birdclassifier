@@ -1,0 +1,29 @@
+<RCC>
+    <qresource prefix="/img" >
+        <file>img/artsenvironment.png</file>
+        <file>img/autodiff.png</file>
+        <file>img/backup_section.png</file>
+        <file>img/copy.png</file>
+        <file>img/exit.png</file>
+        <file>img/fileopen.png</file>
+        <file>img/filesaveas.png</file>
+        <file>img/folder_binary.png</file>
+        <file>img/folder_grey.png</file>
+        <file>img/folder_sound.png</file>
+        <file>img/kview.png</file>
+        <file>img/nextmarked.png</file>
+        <file>img/options.png</file>
+        <file>img/player_eject.png</file>
+        <file>img/player_eject_flat.png</file>
+        <file>img/player_play.png</file>
+        <file>img/player_play_flat.png</file>
+        <file>img/player_record.png</file>
+        <file>img/player_stop.png</file>
+        <file>img/player_stop_flat.png</file>
+        <file>img/playsound.png</file>
+        <file>img/stock-circle.png</file>
+        <file>img/viewmag+.png</file>
+        <file>img/viewmag-.png</file>
+        <file>img/viewmag1.png</file>
+    </qresource>
+</RCC>

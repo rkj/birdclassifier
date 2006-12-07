@@ -1,0 +1,106 @@
+<ui version="4.0" >
+ <author></author>
+ <comment></comment>
+ <exportmacro></exportmacro>
+ <class>SignalDraw</class>
+ <widget class="QWidget" name="SignalDraw" >
+  <property name="geometry" >
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>376</width>
+    <height>273</height>
+   </rect>
+  </property>
+  <property name="windowTitle" >
+   <string>Form</string>
+  </property>
+  <layout class="QHBoxLayout" >
+   <property name="margin" >
+    <number>0</number>
+   </property>
+   <property name="spacing" >
+    <number>0</number>
+   </property>
+   <item>
+    <layout class="QGridLayout" >
+     <property name="margin" >
+      <number>0</number>
+     </property>
+     <property name="spacing" >
+      <number>6</number>
+     </property>
+     <item row="0" column="0" >
+      <widget class="QSlider" name="verticalSlider" >
+       <property name="toolTip" >
+        <string>Zoom</string>
+       </property>
+       <property name="minimum" >
+        <number>1</number>
+       </property>
+       <property name="maximum" >
+        <number>1000</number>
+       </property>
+       <property name="singleStep" >
+        <number>10</number>
+       </property>
+       <property name="pageStep" >
+        <number>100</number>
+       </property>
+       <property name="value" >
+        <number>1</number>
+       </property>
+       <property name="orientation" >
+        <enum>Qt::Vertical</enum>
+       </property>
+       <property name="invertedAppearance" >
+        <bool>true</bool>
+       </property>
+       <property name="invertedControls" >
+        <bool>false</bool>
+       </property>
+       <property name="tickPosition" >
+        <enum>QSlider::NoTicks</enum>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1" >
+      <widget class="AudioDraw" name="drawingArea" >
+       <property name="text" >
+        <string>TextLabel</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1" >
+      <widget class="QScrollBar" name="positionSB" >
+       <property name="maximum" >
+        <number>0</number>
+       </property>
+       <property name="singleStep" >
+        <number>4410</number>
+       </property>
+       <property name="pageStep" >
+        <number>44100</number>
+       </property>
+       <property name="orientation" >
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <pixmapfunction></pixmapfunction>
+ <customwidgets>
+  <customwidget>
+   <class>AudioDraw</class>
+   <extends>QLabel</extends>
+   <header>AudioDraw.hxx</header>
+   <container>0</container>
+   <pixmap></pixmap>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>
