@@ -1,1 +1,42 @@
+Bird Species Classifier README
+******************************
+
+BSC, version 0.83, 2006-07-10
+
+About the project
+=================
+Program made for CSIDC competition as a part of project BirdWatch. For info
+about project please see:
+http://www.birdwatch.pl
+http://eureka.put.poznan.pl/bird/files/BirdWatch-final.pdf
+Program performs recognition of bird species based on their voices. It uses
+simple pattern comparison and nearest neighbour selection.
+
+Requirements
+============
+gcc
+libsndfile
+FFTW3
+pthread
+asound for linux
+CoreAudio for Mac
+DirectSound for Win
+QT4
+
+Compiling
+=========
+If you use Windows modify .pro file and set path for MinGW. Then do:
+qmake
+make
+
+Running
+=======
+After compilation binaries are in the bin/ directory.
+See USAGE for instructions how to use program.
+
+Author
+======
+Roman 'MrStone' Kamyk
+rkj@go2.pl
+Student of Poznan University Of Technology, Computing Science Institute.
 

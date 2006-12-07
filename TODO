@@ -1,0 +1,4 @@
+- Fix bugs in GUI.
+- Implement some kind of IBL to choose samples to learning set.
+- Standarize output and introduce more verbose modes
+

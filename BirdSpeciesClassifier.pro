@@ -10,20 +10,19 @@ VERSION = 0.83
 
 QMAKE_CXXFLAGS_DEBUG += -Werror
 
+LIBS += -lsndfile -lfftw3 -lm -L/usr/lib
 unix {
-	LIBS += -lsndfile -lfftw3 -lm -L/usr/lib
 	LIBS += -lasound -lpthread
 	DEFINES += __LINUX_ALSA__
 	OBJECTS_DIR = bin/
 }
 macx {
-	LIBS += -lsndfile -lfftw3 -lm -L/usr/lib
 	LIBS += -framework CoreAudio -lpthread
 	DEFINES += __MACOSX_CORE__
 	OBJECTS_DIR = bin/
 }
 win32 {
-	LIBS += -lsndfile -lfftw3 -lm -L/usr/lib -ldsound
+	LIBS += -ldsound
 	LIBS += -LF:\Programy\msys\1.0\lib -LF:\Programy\msys\1.0\local\lib
 	INCLUDEPATH += F:\Programy\msys\1.0\local\include
 	INCLUDEPATH += F:\Programy\msys\1.0\include
@@ -32,11 +31,11 @@ win32 {
 }
 
 CONFIG(debug, debug|release) {
-	TARGET = DetectionGUI_Debug
+	TARGET = BSC_Debug
 	DEFINES += __RTAUDIO_DEBUG__ __DEBUG__
 	CONFIG += -Werror
 } else {
-	TARGET = DetectionGUI
+	TARGET = BSC
 	LIBS += -s
 }
 

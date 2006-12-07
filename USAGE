@@ -1,0 +1,55 @@
+USAGE
+*****
+No parameters
+=============
+Program run without any parameters starts with GUI.  After loading sound file
+you can start analysing it.  Green fragments in signal panels are those that
+have energy higher than threshold set in 'Signal energy' panel.  You can select
+fragments in 'Audio signal' panel using left mouse button.  Clicking LMB on
+green fragments in 'Digitally filtered signal' selects it for analysis -
+'Spectrogram' panels show results of FFT and normalization process.  Clicking
+MMB on selected fragment in 'Audio signal' panel also selects it for analysis.
+Using RMB on 'Audio signal' panel zooms in or out the view.
+
+Using parameters
+================
+When parameters are given then program runs in batch mode and process subsequent
+files printing recognition result on console.
+Parameters description:
+	-h
+		Display help.
+	-nofilter 
+		Do not apply filter to loaded files. It is bandpass filter on 2kHz-14kHz.
+	-snr value
+		Set 'Signal To Noise Ratio' on value. Default 3.0. Used to check if
+		there are any data in signal or only noise on all frequencies. Check
+		Audio.cpp file.
+	-cutoff value
+		Set difference cutoff threshold to value in percent. Default 0.255. If two
+		samples differs more then they cannot be threated as voices of the same
+		type.
+	-powerCutoff value
+		Set signal power threshold. Default 1e-04. Audio signals below the threshold
+		are not analysed. Used for splitting audio signal on small fragments.
+	-hopeTime value
+		Set hopetime to value seconds. Default 0. Used in splitting audio signal. In
+		this process signal above power threshold is selected as single voice. But
+		sometimes there is short quiet in the middle of voice. This parameter set to
+		some low value helps to better cut single voices.
+	-verbose
+		Turn vebose mode on.
+	-nounknown
+		Turn reporing of unrecognized voices off.
+	-save prefix
+		Save analysed samples in prefixXXXXXXXXXX files, where Xs are successive
+		numbers.
+	-saveLearning prefix
+		Save learning samples in prefixXXXXXXXXXX files and to learning-all.freq.
+	-learning dirName
+		Read learning set from files in dirName.
+	-learnFile fileName
+		Read learning set from fileName.
+	-crosstest
+		Performs 10-fold cross validation on learning set instead of analysing
+		files.
+	
