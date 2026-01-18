@@ -11,8 +11,10 @@ Complete installation instructions for Bird Species Classifier (BSC) on Linux, m
 3. [macOS Installation](#macos-installation)
 4. [Windows Installation](#windows-installation)
 5. [Build Configuration](#build-configuration)
-6. [Troubleshooting](#troubleshooting)
-7. [Verification](#verification)
+6. [CMake Build (Recommended)](#cmake-build-recommended)
+7. [Running Tests](#running-tests)
+8. [Troubleshooting](#troubleshooting)
+9. [Verification](#verification)
 
 ---
 
@@ -332,6 +334,242 @@ Comment out in `.pro` file:
 ```qmake
 QMAKE_CXXFLAGS += -O3 -march=native  # Example: aggressive optimization
 ```
+
+---
+
+## CMake Build (Recommended)
+
+CMake provides a modern, cross-platform build system with better dependency management and integrated testing support.
+
+### Prerequisites
+
+**In addition to the dependencies listed above, install CMake**:
+
+```bash
+# Ubuntu/Debian
+sudo apt-get install cmake
+
+# Fedora/RHEL
+sudo dnf install cmake
+
+# Arch Linux
+sudo pacman -S cmake
+
+# macOS
+brew install cmake
+
+# Check version (need 3.14+)
+cmake --version
+```
+
+### Building with CMake
+
+#### Basic Build
+
+```bash
+# From project root
+mkdir build
+cd build
+
+# Configure (finds dependencies automatically)
+cmake ..
+
+# Build
+make -j$(nproc)
+
+# Or on macOS:
+# make -j$(sysctl -n hw.ncpu)
+
+# Binaries are in build/bin/
+./bin/BSC  # GUI application
+```
+
+#### Build Options
+
+```bash
+# Debug build
+cmake -DCMAKE_BUILD_TYPE=Debug ..
+
+# Release build (default)
+cmake -DCMAKE_BUILD_TYPE=Release ..
+
+# Build without GUI (core library only)
+cmake -DBUILD_GUI=OFF ..
+
+# Build without tests
+cmake -DBUILD_TESTS=OFF ..
+
+# Specify install prefix
+cmake -DCMAKE_INSTALL_PREFIX=/usr/local ..
+
+# Verbose build output
+make VERBOSE=1
+```
+
+#### Advanced Configuration
+
+```bash
+# Use specific compiler
+cmake -DCMAKE_CXX_COMPILER=g++-11 ..
+
+# Enable compiler warnings
+cmake -DCMAKE_CXX_FLAGS="-Wall -Wextra" ..
+
+# Use Ninja instead of Make (faster)
+cmake -G Ninja ..
+ninja
+
+# Generate compile_commands.json for IDEs
+cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ..
+```
+
+### CMake vs qmake
+
+| Feature | CMake | qmake |
+|---------|-------|-------|
+| Dependency detection | Automatic | Manual |
+| Cross-platform | Excellent | Good |
+| Modern C++ support | Excellent | Limited |
+| IDE integration | Excellent | Good |
+| Test integration | Built-in | Manual |
+| Recommended for | New development | Legacy compatibility |
+
+**Note**: Both build systems are supported. Use CMake for new development and testing. The qmake build is maintained for backward compatibility.
+
+---
+
+## Running Tests
+
+The project includes comprehensive unit tests using Google Test.
+
+### Build and Run Tests
+
+```bash
+# Using CMake (from build directory)
+cd build
+cmake ..
+make
+
+# Run all tests
+make test
+
+# Or use ctest for more control
+ctest --output-on-failure
+
+# Run tests with verbose output
+ctest -V
+
+# Or run test executable directly
+./bin/test_audio
+
+# Run with Google Test options
+./bin/test_audio --gtest_list_tests
+```
+
+### Running Specific Tests
+
+```bash
+# Run only tests matching a pattern
+./bin/test_audio --gtest_filter=AudioTest.ComputePower*
+
+# Run a specific test
+./bin/test_audio --gtest_filter=AudioTest.HammingWindowSymmetry
+
+# Run tests multiple times
+./bin/test_audio --gtest_repeat=10
+
+# Shuffle test order (catch dependencies)
+./bin/test_audio --gtest_shuffle
+```
+
+### Test Output
+
+```
+[==========] Running 25 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 25 tests from AudioTest
+[ RUN      ] AudioTest.ComputePowerBasicSignal
+[       OK ] AudioTest.ComputePowerBasicSignal (0 ms)
+[ RUN      ] AudioTest.ComputePowerZeroSignal
+[       OK ] AudioTest.ComputePowerZeroSignal (0 ms)
+...
+[----------] 25 tests from AudioTest (15 ms total)
+
+[----------] Global test environment tear-down
+[==========] 25 tests from 1 test suite ran. (15 ms total)
+[  PASSED  ] 25 tests.
+```
+
+### Memory Testing
+
+#### Valgrind (Linux/macOS)
+
+```bash
+# Install valgrind
+sudo apt-get install valgrind  # Ubuntu/Debian
+
+# Run tests with memory leak detection
+valgrind --leak-check=full --show-leak-kinds=all ./bin/test_audio
+
+# Expected output (no leaks):
+# All heap blocks were freed -- no leaks are possible
+```
+
+#### AddressSanitizer (All platforms)
+
+```bash
+# Rebuild with AddressSanitizer
+cd build
+cmake -DCMAKE_CXX_FLAGS="-fsanitize=address -g -O1" ..
+make
+
+# Run tests (will detect memory errors)
+./bin/test_audio
+
+# AddressSanitizer will report any memory issues immediately
+```
+
+### Code Coverage
+
+```bash
+# Rebuild with coverage flags
+cd build
+cmake -DCMAKE_CXX_FLAGS="--coverage" -DCMAKE_EXE_LINKER_FLAGS="--coverage" ..
+make
+
+# Run tests
+make test
+
+# Generate coverage report
+lcov --capture --directory . --output-file coverage.info
+lcov --remove coverage.info '/usr/*' '*/tests/*' --output-file coverage.info
+genhtml coverage.info --output-directory coverage_html
+
+# View coverage report
+firefox coverage_html/index.html  # Or your browser
+```
+
+### Test Organization
+
+```
+tests/
+├── test_main.cpp       # Test runner entry point
+├── test_audio.cpp      # Audio module tests (25 tests)
+└── README.md           # Test documentation
+```
+
+**Current Test Coverage**:
+- ✅ Power computation (5 tests)
+- ✅ Window functions (6 tests)
+- ✅ SFrequencies operations (4 tests)
+- ✅ CFFT singleton (2 tests)
+- ✅ Integration tests (2 tests)
+- ✅ Edge cases (2 tests)
+- ✅ Performance tests (1 test)
+
+**Total**: 25 tests
+
+See [tests/README.md](tests/README.md) for detailed test documentation.
 
 ---
 
