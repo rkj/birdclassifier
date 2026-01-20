@@ -46,22 +46,19 @@ ComparisonWindow::ComparisonWindow(QWidget *parent, CSample* sample, vector<CSam
 	sort (&cr[0], &cr[learn.size()]);
 	spectros.resize(COUNT);
 	QString txt;
-	char buf[50];
 	for (uint i=0; i<COUNT; i++){
 		spectros[i] = new SpectroDraw(frame);
 		spectros[i]->setObjectName(QString("learningSpectro") + i);
     spectros[i]->setMinimumSize(QSize(250, 160));
 		spectros[i]->setSample(cr[i].sample, false);
-		sprintf(buf, "%s (%3.2g)", cr[i].sample->getName().c_str(), cr[i].diff);
-		spectros[i]->setDescription(buf);
+		QString desc = QString("%1 (%2)").arg(cr[i].sample->getName().c_str()).arg(cr[i].diff, 0, 'g', 3);
+		spectros[i]->setDescription(desc.toStdString().c_str());
 		myVBox->addWidget(spectros[i]);
-		sprintf(buf, "Spectro%d (%f)\n", i, cr[i].diff);
-		txt += buf;
+		txt += QString("Spectro%1 (%2)\n").arg(i).arg(cr[i].diff);
 		int count = min(cr[i].sample->getFreqCount(), sample->getFreqCount());
 		for (int j=0; j<count; j++){
 			double tmp = sample->getFrequencies()[j].differ(cr[i].sample->getFrequencies()[j]);
-			sprintf(buf, "[%d] = %f\n", j, tmp);
-			txt += buf;
+			txt += QString("[%1] = %2\n").arg(j).arg(tmp);
 		}
 		txt += '\n';
 	}

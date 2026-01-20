@@ -122,13 +122,16 @@ class CSignal {
 		void setName(string s){
 			name = s;
 		}
-		string& getName(){
+		const string& getName() const {
 			return name;
 		}
-		double* getFrames(){
+		const double* getFrames() const {
 			return frames;
 		}
-		int getFramesCount(){
+		double* getFramesMutable() {
+			return frames;
+		}
+		int getFramesCount() const {
 			return framesCount;
 		}
 		~CSignal();
@@ -151,34 +154,34 @@ class CSample : public CSignal {
 		explicit CSample(vector<double>&, int start, int n, uint sampleRate, uint id, uint start, uint end, uint bid);
 		~CSample();
 
-		uint getStartSampleNo(){
+		uint getStartSampleNo() const {
 			return startSample;
 		};
-		uint getEndSampleNo(){
+		uint getEndSampleNo() const {
 			return endSample;
 		};
-		uint getId(){
+		uint getId() const {
 			return id;
 		}
-		bool IsNull(){
+		bool IsNull() const {
 			return isNull;
 		}
-		uint getBirdId(){
+		uint getBirdId() const {
 			return birdId;
 		}
-		OrigFrequencies * getOrigFrequencies(){
+		const OrigFrequencies * getOrigFrequencies() const {
 			return origFrequencies;
 		}
-		SFrequencies * getFrequencies(){
+		const SFrequencies * getFrequencies() const {
 			return frequencies;
 		}
-		uint getFreqCount(){
+		uint getFreqCount() const {
 			return freqCount;
 		}
-		string getBirdAndId(){
-			char buf[60];
-			sprintf(buf, "%s (%d-%d)", birdPolishNameFromId(birdId), birdId, id);
-			return buf;
+		string getBirdAndId() const {
+			std::ostringstream oss;
+			oss << birdPolishNameFromId(birdId) << " (" << birdId << "-" << id << ")";
+			return oss.str();
 		}
 	private:
 		bool isNull;

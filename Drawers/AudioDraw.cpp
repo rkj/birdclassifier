@@ -167,11 +167,10 @@ void AudioDraw::paintEvent(QPaintEvent* event) {
 	// printf("Start: %d, vrS: %d, ftp: %d\n", start, viewRegion.start, frameToPanel(viewRegion.start));
 	for (int i=-start; i<width(); i+=STEP){
 		int frame = panelToFrame(i);
-		char buf[10];
-		sprintf(buf, "%.2f", 1.0*frame/44100);
+		QString timeLabel = QString::number(1.0 * frame / 44100, 'f', 2);
 		paint.drawLine(i, myHeight+1, i, height()-12);
-		// paint.drawText(i, height()-1, buf);
-		paint.drawText(i-STEP/2+1, height()-10, STEP-1, 10, Qt::AlignCenter, buf);
+		// paint.drawText(i, height()-1, timeLabel);
+		paint.drawText(i-STEP/2+1, height()-10, STEP-1, 10, Qt::AlignCenter, timeLabel);
 	}
 }
 

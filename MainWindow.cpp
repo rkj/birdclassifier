@@ -268,9 +268,8 @@ void MainWindow::selectedCSample(CSample* sample){
 	CSample * bestMatch = test(sample, learning);
 	if (bestMatch != NULL){
 		bestMatchSpectrogram->setSample(bestMatch, false);
-		char buf[50];
-		sprintf(buf, "%s (%3.2g)", bestMatch->getName().c_str(), sample->differ(*bestMatch));
-		bestMatchSpectrogram->setDescription(buf);
+		QString desc = QString("%1 (%2)").arg(bestMatch->getName().c_str()).arg(sample->differ(*bestMatch), 0, 'g', 3);
+		bestMatchSpectrogram->setDescription(desc.toStdString().c_str());
 	} else {
 		bestMatchSpectrogram->setSample(NULL, false);
 	}
