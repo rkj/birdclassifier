@@ -21,6 +21,8 @@
 #include "../detect/Audio.hxx"
 #include <QPainter>
 
+using namespace std;
+
 double computePower(vector<double> &val, int start, int count){
 	double energy = 0;
 	for (int i=0; i<count; i++){

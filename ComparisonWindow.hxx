@@ -21,20 +21,21 @@
 #include <vector>
 #include "Audio.hxx"
 
-using namespace std;
+// Note: Do not use "using namespace std" in headers
+// Use std:: prefix explicitly to avoid namespace pollution
 
 class ComparisonWindow : public QDialog, public Ui::ComparisonWindow {
 	Q_OBJECT
 
 	public:
 		static uint COUNT;
-		ComparisonWindow(QWidget *parent, CSample* sample, vector<CSample*>& learn);
+		ComparisonWindow(QWidget *parent, CSample* sample, std::vector<CSample*>& learn);
 		~ComparisonWindow();
 	protected:
 
 	private:
-		vector<CSample*> learning;
-		vector<SpectroDraw*> spectros;
+		std::vector<CSample*> learning;
+		std::vector<SpectroDraw*> spectros;
 
 	private slots:
 

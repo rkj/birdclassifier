@@ -20,19 +20,21 @@
 #ifndef _HXX_AUDIO
 #define _HXX_AUDIO
 #include <sndfile.h>
-#include <map>
-#include <cmath>
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <sstream>
-#include <list>
-#include <vector>
-#include <map>
-#include <string>
 #include <fftw3.h>
 
-using namespace std;
+// Standard library includes (alphabetically ordered, no duplicates)
+#include <cmath>
+#include <fstream>
+#include <iostream>
+#include <list>
+#include <map>
+#include <sstream>
+#include <string>
+#include <vector>
+
+// Note: Do not use "using namespace std" in headers
+// Use std:: prefix explicitly to avoid namespace pollution
+
 typedef unsigned int uint;
 
 const double PI = 3.1415926535f;
@@ -81,7 +83,7 @@ extern double SNR_MIN;
 char* birdPolishNameFromId(uint id);
 char* birdLatinNameFromId(uint id);
 char* birdShortNameFromId(uint id);
-uint birdIdFromName(const string& name);
+uint birdIdFromName(const std::string& name);
 
 template <class T>
 T minim(const T& a, const T& b);
@@ -137,18 +139,18 @@ class CFFT {
 
 class CSignal {
 	protected:
-		string name;
+		std::string name;
 		int framesCount;
 		int sampleRate;
 		double *frames;
 		double computePower(int framesCount, int frameStart=0);
 	public:
-		void loadAudio (const string& filename);
-		void saveAudio (const string& filename);
-		void setName(string s){
+		void loadAudio (const std::string& filename);
+		void saveAudio (const std::string& filename);
+		void setName(std::string s){
 			name = s;
 		}
-		const string& getName() const {
+		const std::string& getName() const {
 			return name;
 		}
 		const double* getFrames() const {
@@ -163,21 +165,21 @@ class CSignal {
 		~CSignal();
 		explicit CSignal(CSignal&);
 		explicit CSignal();
-		explicit CSignal(const string& filename);
+		explicit CSignal(const std::string& filename);
 };
 
 class CSample : public CSignal {
 	public:
 		void consume(CSample& other);
 		double differ(CSample& other);
-		void saveFrequencies(const string& filename);
+		void saveFrequencies(const std::string& filename);
 		int saveFrequencies(FILE *);
-		void saveFrequenciesTxt(const string& filename);
+		void saveFrequenciesTxt(const std::string& filename);
 		CSample(CSample&);
-		explicit CSample(const string& filename);
+		explicit CSample(const std::string& filename);
 		explicit CSample(SFrequencies*, uint freqcount, uint birdid, uint sampleid);
 		explicit CSample(double *, int n, uint sampleRate, uint id, uint start, uint end, uint bid);
-		explicit CSample(vector<double>&, int start, int n, uint sampleRate, uint id, uint start, uint end, uint bid);
+		explicit CSample(std::vector<double>&, int start, int n, uint sampleRate, uint id, uint start, uint end, uint bid);
 		~CSample();
 
 		uint getStartSampleNo() const {
@@ -204,7 +206,7 @@ class CSample : public CSignal {
 		uint getFreqCount() const {
 			return freqCount;
 		}
-		string getBirdAndId() const {
+		std::string getBirdAndId() const {
 			std::ostringstream oss;
 			oss << birdPolishNameFromId(birdId) << " (" << birdId << "-" << id << ")";
 			return oss.str();
@@ -224,18 +226,18 @@ class CSample : public CSignal {
 
 class CAudio : public CSignal {
 	private:
-		list<CSample*> samples;
+		std::list<CSample*> samples;
 	public:
-		list<CSample*> getSamples(){
+		std::list<CSample*> getSamples(){
 			return samples;
 		}
-		explicit CAudio(const string&);
+		explicit CAudio(const std::string&);
 		~CAudio();
 };
 
 int computeFrequencies(double * _in, SFrequencies **_out, int n);
 int computeFrequencies(double * _in, SFrequencies **_out, OrigFrequencies ** _oOut, int n);
-void saveSamples(vector<CSample*>& samples, string dir, bool frequencies);
+void saveSamples(std::vector<CSample*>& samples, std::string dir, bool frequencies);
 
 inline double computePower(double frames[], int framesCount){
 	double energy = 0;
@@ -250,6 +252,6 @@ inline double powerTodB(double value){
 }
 
 int main_detect(int, char**);
-void saveSamplesToFile(vector<CSample*>& leraning, const char* fileName);
-vector<CSample*> readLearningFromFile(const char* filename);
+void saveSamplesToFile(std::vector<CSample*>& leraning, const char* fileName);
+std::vector<CSample*> readLearningFromFile(const char* filename);
 #endif

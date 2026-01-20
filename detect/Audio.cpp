@@ -22,6 +22,8 @@
 #include <array>
 #include <cassert>
 
+using namespace std;
+
 double SNR_MIN = 3.0;
 
 template <class T>

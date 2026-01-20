@@ -26,7 +26,8 @@
 #include <list>
 #include <vector>
 
-using namespace std;
+// Note: Do not use "using namespace std" in headers
+// Use std:: prefix explicitly to avoid namespace pollution
 struct sRegion{
 	int start;
 	int end;
@@ -41,13 +42,13 @@ class AudioDraw : public QLabel {
 	Q_OBJECT
 	public:
 		static const int LEGEND_HEIGHT = 20;
-		void setSignal(vector<double> &values);
+		void setSignal(std::vector<double> &values);
 		void setSignal(){
 			size = 0;
 			update();
 		}
 		void setSelectable(bool s);
-		void setSelected(list<sRegion> regions);
+		void setSelected(std::list<sRegion> regions);
 		void addSelection(int start, int end);
 		void setMarker(int pos);
 		sRegion getViewRegion(){
@@ -84,10 +85,10 @@ class AudioDraw : public QLabel {
 
 	private:
 		int markerDrawedPos;
-		vector<double> *pValues;
+		std::vector<double> *pValues;
 		int size;
 		double zoomY;
-		list<sRegion> selectedRegions;
+		std::list<sRegion> selectedRegions;
 		sRegion viewRegion;
 		sRegion selection;
 		sRegion chosen;
@@ -102,7 +103,7 @@ class AudioDraw : public QLabel {
 		void changeViewRegionStart(int);
 		void setZoomY(int zoom); //zoom 0.1
 		void setChosen(int, int);
-		void setSelection(list<sRegion>&);
+		void setSelection(std::list<sRegion>&);
 		void zoomSelected();
 		void zoom11();
 		void zoomOut();

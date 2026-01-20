@@ -21,6 +21,8 @@
 #include <QPainter>
 #include <cmath>
 
+using namespace std;
+
 void AudioDraw::mousePressEvent(QMouseEvent *event){
 	if (selectable && event->button() == Qt::LeftButton && !selecting && size > 0) {
 		selection.start = event->x();

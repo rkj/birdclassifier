@@ -24,7 +24,8 @@
 #include <vector>
 #include "Spectrogram.hxx"
 
-using namespace std;
+// Note: Do not use "using namespace std" in headers
+// Use std:: prefix explicitly to avoid namespace pollution
 
 
 class LearningListModel : public QAbstractListModel
@@ -32,7 +33,7 @@ class LearningListModel : public QAbstractListModel
 	Q_OBJECT
 
 	public:
-		LearningListModel(vector<CSample*>& _learning, QObject *parent = 0)	: QAbstractListModel(parent), learning(_learning){
+		LearningListModel(std::vector<CSample*>& _learning, QObject *parent = 0)	: QAbstractListModel(parent), learning(_learning){
 		}
 
 		int rowCount(const QModelIndex & = QModelIndex()) const {
@@ -75,11 +76,11 @@ class LearningListModel : public QAbstractListModel
 			endRemoveRows();
 			return true;
 		}
-		vector<CSample*> getLearning(){
+		std::vector<CSample*> getLearning(){
 			return learning;
 		}
 	private:
-		vector<CSample*> learning;
+		std::vector<CSample*> learning;
 };
 
 class LearningDialog : public QDialog, public Ui::LearningDialog {
