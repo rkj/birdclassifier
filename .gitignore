@@ -1,4 +1,116 @@
+# qmake generated files
 Makefile
 Makefile.Debug
 Makefile.Release
 ui_*.h
+moc_*.cpp
+qrc_*.cpp
+
+# Build directories
+bin/
+build/
+debug/
+release/
+Debug/
+Release/
+
+# CMake generated files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CTestTestfile.cmake
+*.cmake
+!CMakeLists.txt
+!cmake/*.cmake
+
+# Object files
+*.o
+*.obj
+*.lo
+*.slo
+
+# Compiled binaries
+BSC
+BSC_Debug
+BSC.exe
+BSC_Debug.exe
+*.exe
+*.app
+*.out
+
+# Test binaries (but not source files)
+test_audio
+test_detect
+test_filter
+test_files
+!tests/*.cpp
+!tests/*.h
+
+# Libraries
+*.a
+*.lib
+*.so
+*.so.*
+*.dylib
+*.dll
+
+# Qt specific
+*.pro.user
+*.pro.user.*
+.qmake.stash
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.kate-swp
+
+# Test artifacts
+Testing/
+test_results/
+*.log
+*.trs
+
+# Coverage files
+*.gcov
+*.gcda
+*.gcno
+*.info
+coverage/
+htmlcov/
+
+# Valgrind output
+valgrind-out.txt
+*.valgrind
+
+# Google Test
+googletest/
+_deps/
+
+# Temporary files
+*.tmp
+*.bak
+*.orig
+*.rej
+*.pyc
+__pycache__/
+
+# Documentation build
+docs/_build/
+docs/html/
+docs/latex/
+doxygen_output/
+
+# Package files
+*.tar.gz
+*.zip
+*.deb
+*.rpm
+
+# Core dumps
+core
+core.*
+vgcore.*
