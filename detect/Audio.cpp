@@ -19,6 +19,9 @@
 
 #include "Audio.hxx"
 #include "detect.hxx"
+#include <array>
+#include <cassert>
+
 double SNR_MIN = 3.0;
 
 template <class T>
@@ -30,41 +33,74 @@ void RectangleWindow(T* in, T* out, int n){
 
 template <class T>
 void HanningWindow(T* in, T* out, int n){
-	static T tab[4096] = {-1};
-	if (tab[0] == -1){
-		for (int j=0; j<n; j++){
-			tab[j] = (0.50-0.50*cos(2*PI*j/n));
+	// Prevent buffer overflow - window size must not exceed maximum
+	assert(n > 0 && n <= 4096 && "Window size must be between 1 and 4096");
+
+	static std::array<T, 4096> tab;
+	static bool initialized = false;
+	static int cached_n = 0;
+
+	// Re-initialize if window size changes or first time
+	if (!initialized || cached_n != n) {
+		for (int j = 0; j < n; j++) {
+			tab[j] = static_cast<T>(0.50 - 0.50 * cos(2 * PI * j / n));
 		}
+		initialized = true;
+		cached_n = n;
 	}
-	for (int j=0; j<n; j++){
-		out[j] = in[j]*tab[j];
+
+	// Apply pre-computed window
+	for (int j = 0; j < n; j++) {
+		out[j] = in[j] * tab[j];
 	}
 }
 
 template <class T>
 void HammingWindow(T* in, T* out, int n){
-	static T tab[4096] = {-1};
-	if (tab[0] == -1){
-		for (int j=0; j<n; j++){
-			tab[j] = (0.54-0.46*cos(2*PI*j/n));
+	// Prevent buffer overflow - window size must not exceed maximum
+	assert(n > 0 && n <= 4096 && "Window size must be between 1 and 4096");
+
+	static std::array<T, 4096> tab;
+	static bool initialized = false;
+	static int cached_n = 0;
+
+	// Re-initialize if window size changes or first time
+	if (!initialized || cached_n != n) {
+		for (int j = 0; j < n; j++) {
+			tab[j] = static_cast<T>(0.54 - 0.46 * cos(2 * PI * j / n));
 		}
+		initialized = true;
+		cached_n = n;
 	}
-	for (int j=0; j<n; j++){
-		out[j] = in[j]*tab[j];
+
+	// Apply pre-computed window
+	for (int j = 0; j < n; j++) {
+		out[j] = in[j] * tab[j];
 	}
 }
 
 template <class T>
 void BlackmanWindow(T* in, T* out, int n){
-	static T tab[4096] = {-1};
-	int n_1 = n-1;
-	if (tab[0] == -1){
-		for (int j=0; j<n; j++){
-			tab[j] = (0.42-0.5*cos(2*PI*j/n_1)+0.08*cos(4*PI*j/n_1));
+	// Prevent buffer overflow - window size must not exceed maximum
+	assert(n > 0 && n <= 4096 && "Window size must be between 1 and 4096");
+
+	static std::array<T, 4096> tab;
+	static bool initialized = false;
+	static int cached_n = 0;
+
+	// Re-initialize if window size changes or first time
+	if (!initialized || cached_n != n) {
+		int n_1 = n - 1;
+		for (int j = 0; j < n; j++) {
+			tab[j] = static_cast<T>(0.42 - 0.5 * cos(2 * PI * j / n_1) + 0.08 * cos(4 * PI * j / n_1));
 		}
+		initialized = true;
+		cached_n = n;
 	}
-	for (int j=0; j<n; j++){
-		out[j] = in[j]*tab[j];
+
+	// Apply pre-computed window
+	for (int j = 0; j < n; j++) {
+		out[j] = in[j] * tab[j];
 	}
 }
 
