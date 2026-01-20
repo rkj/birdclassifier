@@ -383,6 +383,172 @@ TEST_F(AudioTest, WindowFunctionPerformance) {
 }
 
 // ============================================================================
+// Buffer Overflow Safety Tests (PR #2)
+// ============================================================================
+
+TEST_F(AudioTest, HammingWindowMaxSize) {
+    // Test with maximum allowed window size (4096)
+    const int N = 4096;
+    double input[N];
+    double output[N];
+
+    for (int i = 0; i < N; i++) {
+        input[i] = 1.0;
+    }
+
+    // Should not crash or overflow
+    EXPECT_NO_THROW({
+        HammingWindow(input, output, N);
+    });
+
+    // Verify window was applied
+    for (int i = 0; i < N; i++) {
+        EXPECT_GE(output[i], 0.0) << "Window value negative at " << i;
+        EXPECT_LE(output[i], 1.0) << "Window value > 1 at " << i;
+    }
+}
+
+TEST_F(AudioTest, HanningWindowMaxSize) {
+    // Test with maximum allowed window size (4096)
+    const int N = 4096;
+    double input[N];
+    double output[N];
+
+    for (int i = 0; i < N; i++) {
+        input[i] = 1.0;
+    }
+
+    // Should not crash or overflow
+    EXPECT_NO_THROW({
+        HanningWindow(input, output, N);
+    });
+
+    // Verify window was applied
+    for (int i = 0; i < N; i++) {
+        EXPECT_GE(output[i], 0.0) << "Window value negative at " << i;
+        EXPECT_LE(output[i], 1.0) << "Window value > 1 at " << i;
+    }
+}
+
+TEST_F(AudioTest, BlackmanWindowMaxSize) {
+    // Test with maximum allowed window size (4096)
+    const int N = 4096;
+    double input[N];
+    double output[N];
+
+    for (int i = 0; i < N; i++) {
+        input[i] = 1.0;
+    }
+
+    // Should not crash or overflow
+    EXPECT_NO_THROW({
+        BlackmanWindow(input, output, N);
+    });
+
+    // Verify window was applied
+    for (int i = 0; i < N; i++) {
+        EXPECT_GE(output[i], 0.0) << "Window value negative at " << i;
+        EXPECT_LE(output[i], 1.0) << "Window value > 1 at " << i;
+    }
+}
+
+TEST_F(AudioTest, WindowFunctionDifferentSizes) {
+    // Test that window functions work correctly with different sizes
+    const int sizes[] = {10, 256, 512, 1024, 4096};
+
+    for (int size : sizes) {
+        double* input = new double[size];
+        double* output = new double[size];
+
+        for (int i = 0; i < size; i++) {
+            input[i] = 1.0;
+        }
+
+        // All three window functions should work
+        EXPECT_NO_THROW({
+            HammingWindow(input, output, size);
+        }) << "HammingWindow failed with size " << size;
+
+        EXPECT_NO_THROW({
+            HanningWindow(input, output, size);
+        }) << "HanningWindow failed with size " << size;
+
+        EXPECT_NO_THROW({
+            BlackmanWindow(input, output, size);
+        }) << "BlackmanWindow failed with size " << size;
+
+        delete[] input;
+        delete[] output;
+    }
+}
+
+TEST_F(AudioTest, WindowFunctionMinSize) {
+    // Test with minimum window size (1)
+    double input[1] = {1.0};
+    double output[1];
+
+    EXPECT_NO_THROW({
+        HammingWindow(input, output, 1);
+        EXPECT_DOUBLE_EQ(output[0], 0.54);  // Hamming at position 0
+    });
+
+    EXPECT_NO_THROW({
+        HanningWindow(input, output, 1);
+        EXPECT_DOUBLE_EQ(output[0], 0.0);  // Hanning at position 0
+    });
+
+    EXPECT_NO_THROW({
+        BlackmanWindow(input, output, 1);
+        // Blackman value at position 0 with n=1
+    });
+}
+
+TEST_F(AudioTest, WindowFunctionCaching) {
+    // Test that window functions correctly handle caching
+    const int N = 256;
+    double input[N];
+    double output1[N];
+    double output2[N];
+
+    for (int i = 0; i < N; i++) {
+        input[i] = std::sin(2.0 * PI * i / N);
+    }
+
+    // Call twice with same size - should use cache
+    HammingWindow(input, output1, N);
+    HammingWindow(input, output2, N);
+
+    // Results should be identical
+    for (int i = 0; i < N; i++) {
+        EXPECT_DOUBLE_EQ(output1[i], output2[i])
+            << "Cached window results differ at index " << i;
+    }
+
+    // Call with different size
+    const int M = 512;
+    double input2[M];
+    double output3[M];
+
+    for (int i = 0; i < M; i++) {
+        input2[i] = 1.0;
+    }
+
+    // Should recalculate for new size
+    EXPECT_NO_THROW({
+        HammingWindow(input2, output3, M);
+    });
+
+    // Call again with original size - should recalculate
+    HammingWindow(input, output2, N);
+
+    // Results should still be identical to original
+    for (int i = 0; i < N; i++) {
+        EXPECT_DOUBLE_EQ(output1[i], output2[i])
+            << "Window results changed after size change at index " << i;
+    }
+}
+
+// ============================================================================
 // Test Summary
 // ============================================================================
 
@@ -397,9 +563,18 @@ TEST_F(AudioTest, WindowFunctionPerformance) {
  * ✅ Integration tests (2 tests)
  * ✅ Edge cases (2 tests)
  * ✅ Performance tests (1 test)
+ * ✅ Buffer overflow safety (6 tests) - PR #2
  *
- * Total: 25 tests
+ * Total: 31 tests
  *
  * These tests provide a foundation for modernization.
  * As we refactor, we'll ensure all tests continue to pass.
+ *
+ * PR #2 Buffer Overflow Tests:
+ * - HammingWindowMaxSize: Verifies 4096 window size works
+ * - HanningWindowMaxSize: Verifies 4096 window size works
+ * - BlackmanWindowMaxSize: Verifies 4096 window size works
+ * - WindowFunctionDifferentSizes: Tests multiple sizes (10, 256, 512, 1024, 4096)
+ * - WindowFunctionMinSize: Tests minimum size (1)
+ * - WindowFunctionCaching: Verifies caching behavior with size changes
  */
