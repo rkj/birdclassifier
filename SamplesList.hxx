@@ -23,12 +23,13 @@
 #include <list>
 #include "detect/Audio.hxx"
 
-using namespace std;
+// Note: Do not use "using namespace std" in headers
+// Use std:: prefix explicitly to avoid namespace pollution
 
 class CSamplesList {
 	public:
 		CSample* getSampleAt(uint pos){
-			for (list<CSample*>::iterator it = samples.begin(); it != samples.end(); it++){
+			for (std::list<CSample*>::iterator it = samples.begin(); it != samples.end(); it++){
 				if (pos >= (*it)->getStartSampleNo() && pos <= (*it)->getEndSampleNo()){
 					return *it;
 				}
@@ -41,19 +42,19 @@ class CSamplesList {
 		void clear(){
 		}
 		CSamplesList(){
-			for (list<CSample*>::iterator it = samples.begin(); it != samples.end(); it++){
+			for (std::list<CSample*>::iterator it = samples.begin(); it != samples.end(); it++){
 				delete *it;
 			}
 			samples.clear();
 		}
 		~CSamplesList(){
-			for (list<CSample*>::iterator it = samples.begin(); it != samples.end(); it++){
+			for (std::list<CSample*>::iterator it = samples.begin(); it != samples.end(); it++){
 				delete *it;
 			}
 			samples.clear();
 		}
 	private:
-		list<CSample*> samples;
+		std::list<CSample*> samples;
 };
 
 #endif// _SAMPLESLIST_HXX

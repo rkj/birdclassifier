@@ -20,6 +20,8 @@
 #include "ComparisonWindow.hxx"
 #include <algorithm>
 
+using namespace std;
+
 struct CCompareResults{
 	double diff;
 	CSample *sample;

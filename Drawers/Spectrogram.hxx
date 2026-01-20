@@ -27,7 +27,8 @@
 #include <cmath>
 #include "detect/Audio.hxx"
 
-using namespace std;
+// Note: Do not use "using namespace std" in headers
+// Use std:: prefix explicitly to avoid namespace pollution
 
 class CSpectColor {
 	public:

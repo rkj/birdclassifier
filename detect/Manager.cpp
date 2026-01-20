@@ -19,6 +19,8 @@
 
 #include "Manager.hxx"
 
+using namespace std;
+
 void CManager::addFile(const string & filename){
 	files.push_back(filename);
 }

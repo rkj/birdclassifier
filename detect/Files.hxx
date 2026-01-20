@@ -27,7 +27,8 @@
 #include "mpglib/mpglib.h"
 #include "mpglib/mpg123.h"
 
-using namespace std;
+// Note: Do not use "using namespace std" in headers
+// Use std:: prefix explicitly to avoid namespace pollution
 typedef unsigned int uint;
 
 const uint BUF_SIZE = 9216;
@@ -35,7 +36,7 @@ const uint BUF_SIZE = 9216;
 
 class CFile {
 	public:
-		CFile(const string& filename);
+		CFile(const std::string& filename);
 		virtual ~CFile() = 0;
 		virtual double read();
 		virtual bool readPossible();
@@ -46,19 +47,19 @@ class CFile {
 		uint getSampleRate(){
 			return sampleRate;
 		}
-		string& getFilename(){
+		std::string& getFilename(){
 			return filename;
 		}
 
 	protected:
-		string filename;
+		std::string filename;
 		int framesCount;
 		uint sampleRate;
 		uint channels;
 		uint bufPos;
 		double buffer[2*BUF_SIZE];
 
-		virtual void fillBuffer() throw(exception) = 0;
+		virtual void fillBuffer() throw(std::exception) = 0;
 		int readSamples;
 };
 
@@ -66,11 +67,11 @@ class CMemoryFile : public CFile {
 	public:
 		double read();
 		bool readPossible();
-		CMemoryFile(double * mem, int size, int sampleRate, const string& filename);
+		CMemoryFile(double * mem, int size, int sampleRate, const std::string& filename);
 		~CMemoryFile(){
 		}
 	protected:
-		void fillBuffer() throw (exception) { 
+		void fillBuffer() throw (std::exception) { 
 		}
 	private:
 		double * data;
@@ -78,10 +79,10 @@ class CMemoryFile : public CFile {
 
 class CMP3File : public CFile {
 	public:
-		CMP3File(const string& filename);
+		CMP3File(const std::string& filename);
 		~CMP3File();
 	protected:
-		void fillBuffer() throw(exception);
+		void fillBuffer() throw(std::exception);
 	private:
 		char fileBuffer[BUF_SIZE];
 		bool needToReadFile;
@@ -97,10 +98,10 @@ class CMP3File : public CFile {
 
 class CWaveFile : public CFile {
 	public:
-		CWaveFile(const string& filename);
+		CWaveFile(const std::string& filename);
 		~CWaveFile();
 	protected:
-		void fillBuffer() throw(exception);
+		void fillBuffer() throw(std::exception);
 	private:
 		SF_INFO sf_info;
 		SNDFILE* file;
@@ -108,6 +109,6 @@ class CWaveFile : public CFile {
 
 class CFileFactory {
 	public:
-		static CFile* createCFile(const string& filename);
+		static CFile* createCFile(const std::string& filename);
 };
 #endif

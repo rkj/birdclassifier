@@ -21,6 +21,8 @@
 #include "LearningDialog.hxx"
 
 #include <QMutex>
+
+using namespace std;
 QMutex samplesMutex;
 MainWindow* myWindow;
 

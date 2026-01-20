@@ -20,10 +20,10 @@
 #include "ui_SettingsDialog.h"
 #include <QAbstractListModel>
 #include <vector>
-#include <QAbstractListModel>
 #include "Spectrogram.hxx"
 
-using namespace std;
+// Note: Do not use "using namespace std" in headers
+// Use std:: prefix explicitly to avoid namespace pollution
 
 
 class ColorListModel : public QAbstractListModel
@@ -31,7 +31,7 @@ class ColorListModel : public QAbstractListModel
 	Q_OBJECT
 
 	public:
-		ColorListModel(vector<CSpectColor*>& _colorList, QObject *parent = 0)	: QAbstractListModel(parent), colorList(_colorList){
+		ColorListModel(std::vector<CSpectColor*>& _colorList, QObject *parent = 0)	: QAbstractListModel(parent), colorList(_colorList){
 		}
 
 		int rowCount(const QModelIndex & = QModelIndex()) const {
@@ -69,7 +69,7 @@ class ColorListModel : public QAbstractListModel
 		}
 
 	private:
-		vector<CSpectColor*> colorList;
+		std::vector<CSpectColor*> colorList;
 };
 
 class SettingsDialog : public QDialog, public Ui::SettingsDialog {

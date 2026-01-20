@@ -19,6 +19,8 @@
 
 #include "Files.hxx"
 
+using namespace std;
+
 CFile::CFile(const string& _filename){
 	this->filename = _filename;
 	framesCount = 0;

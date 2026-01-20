@@ -23,6 +23,8 @@
 #include "detect.hxx"
 #include "Manager.hxx"
 
+using namespace std;
+
 bool verbose = false;
 bool printUnknown = true;
 bool crosstest = false;
