@@ -428,7 +428,10 @@ int main_detect(int argc, char *argv[]){
 				printf("No value!\n");
 				return 1;
 			}
-			sscanf(argv[i], "%lg", &SNR_MIN);
+			// Update AudioConfig singleton instead of global variable
+			sscanf(argv[i], "%lg", &AudioConfig::getInstance().snrMin);
+			// Also update deprecated global for backward compatibility
+			SNR_MIN = AudioConfig::getInstance().snrMin;
 		} else if (strcmp(argv[i], "-saveLearning") == 0){
 			if (++i == argc){
 				printf("No filename!\n");

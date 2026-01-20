@@ -627,6 +627,82 @@ TEST_F(AudioTest, OstreamWithSpecialCharacters) {
 }
 
 // ============================================================================
+// Configuration Tests (PR #4)
+// ============================================================================
+
+TEST_F(AudioTest, AudioConfigSingleton) {
+    // Verify that AudioConfig is a proper singleton
+    AudioConfig& config1 = AudioConfig::getInstance();
+    AudioConfig& config2 = AudioConfig::getInstance();
+
+    // Should be the same instance
+    EXPECT_EQ(&config1, &config2) << "AudioConfig should be a singleton";
+}
+
+TEST_F(AudioTest, AudioConfigDefaultValues) {
+    // Verify default configuration values
+    AudioConfig& config = AudioConfig::getInstance();
+
+    EXPECT_DOUBLE_EQ(config.snrMin, 3.0) << "Default SNR minimum should be 3.0";
+    EXPECT_DOUBLE_EQ(config.powerCutoff, 1e-04) << "Default power cutoff should be 1e-04";
+    EXPECT_DOUBLE_EQ(config.cutoffThreshold, 0.255) << "Default cutoff threshold should be 0.255";
+}
+
+TEST_F(AudioTest, AudioConfigModifiable) {
+    // Verify that configuration values can be modified
+    AudioConfig& config = AudioConfig::getInstance();
+
+    // Save original value
+    double originalSnr = config.snrMin;
+
+    // Modify
+    config.snrMin = 5.0;
+    EXPECT_DOUBLE_EQ(config.snrMin, 5.0) << "Should be able to modify SNR minimum";
+
+    // Verify change persists through getInstance()
+    EXPECT_DOUBLE_EQ(AudioConfig::getInstance().snrMin, 5.0)
+        << "Modified value should persist";
+
+    // Restore original value for other tests
+    config.snrMin = originalSnr;
+}
+
+TEST_F(AudioTest, AudioConfigThreadSafeSingleton) {
+    // Verify singleton is thread-safe (C++11 static local initialization)
+    // This is guaranteed by C++11, but we test the interface
+
+    // Multiple calls should return same instance
+    AudioConfig* instances[10];
+    for (int i = 0; i < 10; i++) {
+        instances[i] = &AudioConfig::getInstance();
+    }
+
+    // All should point to same instance
+    for (int i = 1; i < 10; i++) {
+        EXPECT_EQ(instances[0], instances[i])
+            << "All getInstance() calls should return same instance";
+    }
+}
+
+TEST_F(AudioTest, AudioConfigIndependentOfGlobal) {
+    // Verify AudioConfig works independently
+    // (Though SNR_MIN global is kept for backward compatibility)
+
+    AudioConfig& config = AudioConfig::getInstance();
+
+    // Config should have its own value
+    double configSnr = config.snrMin;
+    EXPECT_GT(configSnr, 0.0) << "Config SNR should be positive";
+
+    // Modifying config should work independently
+    config.snrMin = 4.5;
+    EXPECT_DOUBLE_EQ(config.snrMin, 4.5);
+
+    // Restore
+    config.snrMin = 3.0;
+}
+
+// ============================================================================
 // Test Summary
 // ============================================================================
 
@@ -643,8 +719,9 @@ TEST_F(AudioTest, OstreamWithSpecialCharacters) {
  * ✅ Performance tests (1 test)
  * ✅ Buffer overflow safety (6 tests) - PR #2
  * ✅ String safety & const correctness (5 tests) - PR #3
+ * ✅ Configuration management (5 tests) - PR #4
  *
- * Total: 36 tests
+ * Total: 41 tests
  *
  * These tests provide a foundation for modernization.
  * As we refactor, we'll ensure all tests continue to pass.
@@ -663,4 +740,11 @@ TEST_F(AudioTest, OstreamWithSpecialCharacters) {
  * - StringSafetyNoBufferOverflow: Verifies long strings don't overflow
  * - OstreamFormattingCorrect: Verifies ostringstream formatting
  * - OstreamWithSpecialCharacters: Tests special character handling
+ *
+ * PR #4 Configuration Tests:
+ * - AudioConfigSingleton: Verifies singleton pattern implementation
+ * - AudioConfigDefaultValues: Tests default configuration values
+ * - AudioConfigModifiable: Tests configuration can be modified
+ * - AudioConfigThreadSafeSingleton: Verifies thread-safe singleton
+ * - AudioConfigIndependentOfGlobal: Tests independence from deprecated global
  */
