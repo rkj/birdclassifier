@@ -307,7 +307,8 @@ void CSample::normalize(){
 	// printf("Max: %f, min2: %f\n", maximum, minimum);
 	// printf("Max: %f, min: %f, avg: %f\n", maximum, minimum, minAvg);
 	double SNR = maximum - minimum;
-	if (SNR < SNR_MIN){
+	// Use AudioConfig singleton instead of global SNR_MIN
+	if (SNR < AudioConfig::getInstance().snrMin){
 		isNull = true;
 	}
 	for (uint j=0; j<freqCount; j++){

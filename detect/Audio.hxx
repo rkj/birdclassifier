@@ -50,6 +50,32 @@ const uint COUNT_FREQ = LAST_FREQ-FIRST_FREQ;
 const uint FFT_SIZE = 256;
 const uint SEGMENT_FRAMES = 100;
 
+// Configuration parameters for audio processing
+// Use singleton pattern to provide global access while encapsulating state
+struct AudioConfig {
+private:
+	AudioConfig() : snrMin(3.0), powerCutoff(1e-04), cutoffThreshold(0.255) {}
+
+public:
+	double snrMin;           // Signal-to-noise ratio minimum threshold
+	double powerCutoff;      // Minimum power threshold for signal detection
+	double cutoffThreshold;  // Maximum difference threshold for classification
+
+	// Singleton access
+	static AudioConfig& getInstance() {
+		static AudioConfig instance;
+		return instance;
+	}
+
+	// Delete copy and move constructors/assignments
+	AudioConfig(const AudioConfig&) = delete;
+	AudioConfig& operator=(const AudioConfig&) = delete;
+	AudioConfig(AudioConfig&&) = delete;
+	AudioConfig& operator=(AudioConfig&&) = delete;
+};
+
+// Deprecated: Use AudioConfig::getInstance().snrMin instead
+// Kept for backward compatibility with existing code
 extern double SNR_MIN;
 
 char* birdPolishNameFromId(uint id);
