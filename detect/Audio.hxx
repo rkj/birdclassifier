@@ -140,9 +140,8 @@ class CFFT {
 class CSignal {
 	protected:
 		std::string name;
-		int framesCount;
 		int sampleRate;
-		double *frames;
+		std::vector<double> frames;
 		double computePower(int framesCount, int frameStart=0);
 	public:
 		void loadAudio (const std::string& filename);
@@ -153,18 +152,21 @@ class CSignal {
 		const std::string& getName() const {
 			return name;
 		}
-		const double* getFrames() const {
+		const std::vector<double>& getFrames() const {
 			return frames;
 		}
-		double* getFramesMutable() {
+		std::vector<double>& getFramesMutable() {
 			return frames;
 		}
-		int getFramesCount() const {
-			return framesCount;
+		size_t getFramesCount() const {
+			return frames.size();
 		}
-		~CSignal();
-		explicit CSignal(CSignal&);
-		explicit CSignal();
+		~CSignal() = default;
+		CSignal() = default;
+		CSignal(const CSignal&) = default;
+		CSignal& operator=(const CSignal&) = default;
+		CSignal(CSignal&&) noexcept = default;
+		CSignal& operator=(CSignal&&) noexcept = default;
 		explicit CSignal(const std::string& filename);
 };
 
