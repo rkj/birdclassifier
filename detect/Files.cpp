@@ -18,6 +18,7 @@
 */
 
 #include "Files.hxx"
+#include <climits>
 
 using namespace std;
 
@@ -125,7 +126,7 @@ int CMP3File::readFile(){
 	return len;
 }
 
-void CMP3File::fillBuffer() throw (exception) {
+void CMP3File::fillBuffer() {
 //	printf("****FillBuffer (BufFilled: %d)\n", bufFilled);
 	unsigned int bufFill = 0;
 	if (bufFilled > 0){

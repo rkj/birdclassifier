@@ -108,14 +108,14 @@ CSample* CManager::readFile(){
 		return NULL;
 	}
 	long long endFileSample = currFile->sampleNumber();
-	string& fn = currFile->getFilename();
-	uint last = fn.find_last_of("/");
+	const string& fn = currFile->getFilename();
+	size_t last = fn.find_last_of("/");
 	if (last == string::npos){
 		last = 0;
 	} else {
 		last++;
 	}
-	string name = fn.substr(last, min(fn.size()-last, 4u));
+	string name = fn.substr(last, min(fn.size()-last, (size_t)4));
 	CSample* sample = new CSample(buffer, pos-toLowCount, currFile->getSampleRate(), ++lastId, startFileSample, endFileSample, birdIdFromName(name));
 	sample->setName(name);
 	return sample;

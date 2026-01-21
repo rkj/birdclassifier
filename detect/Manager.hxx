@@ -30,13 +30,13 @@ static const uint BUFSIZE = 1097152;
 class CManager {
 	public:
 		CSample* getSample();
-		void addFile(const string& filename);
-		
+		void addFile(const std::string& filename);
+
 		static CManager& getInstance(){
 			static CManager manager;
 			return manager;
 		}
-		void setSavePrefix(const string& prefix){
+		void setSavePrefix(const std::string& prefix){
 			savePrefix = prefix;
 			lastId = 0;
 		}
@@ -59,8 +59,8 @@ class CManager {
 			release = r;
 		}
 	private:
-		list<string> files;
-		list<string> analyzedFiles;
+		std::list<std::string> files;
+		std::list<std::string> analyzedFiles;
 		CFile* currFile;
 		bool release;
 		
@@ -73,7 +73,7 @@ class CManager {
 		CManager();
 		~CManager();
 		uint lastId;
-		string savePrefix;
+		std::string savePrefix;
 };
 
 #endif
