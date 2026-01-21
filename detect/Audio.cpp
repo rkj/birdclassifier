@@ -159,7 +159,7 @@ void CSignal::saveAudio(const string& filename){
 
 CSample::CSample(const string& filename) : CSignal(filename) {
 	birdId = birdIdFromName(getName());
-	freqCount = computeFrequencies(frames.data(), &frequencies, &origFrequencies, frames.size());
+	computeFrequencies(frames.data(), frequencies, origFrequencies, frames.size());
 	isNull = false;
 	normalize();
 }
@@ -171,7 +171,7 @@ CSample::CSample(double* _frames, int n, uint _sampleRate, uint _id, uint start,
 	}
 	sampleRate = _sampleRate;
 	frames.assign(_frames, _frames + n);
-	freqCount = computeFrequencies(frames.data(), &frequencies, &origFrequencies, frames.size());
+	computeFrequencies(frames.data(), frequencies, origFrequencies, frames.size());
 	isNull = false;
 	normalize();
 	id = _id;
@@ -187,7 +187,7 @@ CSample::CSample(vector<double>& samples, int startS, int n, uint _sampleRate, u
 	}
 	sampleRate = _sampleRate;
 	frames.assign(samples.begin() + startS, samples.begin() + startS + n);
-	freqCount = computeFrequencies(frames.data(), &frequencies, &origFrequencies, frames.size());
+	computeFrequencies(frames.data(), frequencies, origFrequencies, frames.size());
 	isNull = false;
 	normalize();
 	id = _id;
@@ -196,30 +196,21 @@ CSample::CSample(vector<double>& samples, int startS, int n, uint _sampleRate, u
 	endSample = end;
 }
 
-CSample::CSample(CSample& b) : CSignal(b) {
+CSample::CSample(const CSample& b) : CSignal(b) {
 	isNull = b.isNull;
-	freqCount = b.freqCount;
 	id = b.id;
 	birdId = b.birdId;
-	frequencies = new SFrequencies[freqCount];
-	origFrequencies = new OrigFrequencies[freqCount];
-	for (uint i=0; i<freqCount; i++){
-		frequencies[i] = b.frequencies[i];
-		origFrequencies[i] = b.origFrequencies[i];
-	}
-}
-
-CSample::~CSample(){
-	if (frequencies != NULL){
-		delete [] frequencies;
-		delete [] origFrequencies;
-		frequencies = NULL;
-	}
+	startSample = b.startSample;
+	endSample = b.endSample;
+	frequencies = b.frequencies;  // vector copy
+	origFrequencies = b.origFrequencies;  // vector copy
 }
 
 CSample::CSample(SFrequencies* freqs, uint freqcount, uint birdid, uint sampleid){
-	frequencies = freqs;
-	freqCount = freqcount;
+	// Take ownership of the raw pointer data by copying into vector, then delete
+	frequencies.assign(freqs, freqs + freqcount);
+	delete [] freqs;  // Clean up the raw pointer
+	// Note: origFrequencies is left empty for this constructor
 	this->birdId = birdid;
 	this->id = sampleid;
 	sampleRate = 0;
@@ -230,8 +221,8 @@ CSample::CSample(SFrequencies* freqs, uint freqcount, uint birdid, uint sampleid
 }
 
 void CSample::consume(CSample& other){
-	int c = min(freqCount, other.freqCount);
-	for (int i=0; i<c; i++){
+	size_t c = min(frequencies.size(), other.frequencies.size());
+	for (size_t i=0; i<c; i++){
 		frequencies[i].consume(other.frequencies[i]);
 	}
 }
@@ -241,13 +232,15 @@ double CSample::differ(CSample& other){
 	if (isNull || other.isNull){
 		return 1.1;
 	}
-	if (2 * freqCount < other.freqCount || 2*other.freqCount < freqCount){
+	size_t myFreqCount = frequencies.size();
+	size_t otherFreqCount = other.frequencies.size();
+	if (2 * myFreqCount < otherFreqCount || 2 * otherFreqCount < myFreqCount){
 		++ilosc;
 		return 1.2;
 	}
-	int count = min(freqCount, other.freqCount);
+	size_t count = min(myFreqCount, otherFreqCount);
 	double dif = 0.0;
-	for (int i=0; i<count; i++){
+	for (size_t i=0; i<count; i++){
 		double tmp = frequencies[i].differ(other.frequencies[i]);
 		dif += tmp;
 	}
@@ -260,7 +253,8 @@ void CSample::normalize(){
 	double avg = 0;
 	double minAvg = 100000;
 	double minimum = 100000;
-	for (uint j=0; j<freqCount; j++){
+	size_t freqCount = frequencies.size();
+	for (size_t j=0; j<freqCount; j++){
 		double *freq = frequencies[j].freq;
 		avg = 0;
 		for (uint i=0; i<COUNT_FREQ; i++){
@@ -290,11 +284,11 @@ void CSample::normalize(){
 	if (SNR < AudioConfig::getInstance().snrMin){
 		isNull = true;
 	}
-	for (uint j=0; j<freqCount; j++){
+	for (size_t j=0; j<freqCount; j++){
 		double *freq = frequencies[j].freq;
 		for (uint i=0; i<COUNT_FREQ; i++){
-			// freq[i] = (freq[i]-minimum)/(maximum-minimum);	
-			freq[i] = max(0.0, (freq[i] - minimum)/(maximum-minimum));	
+			// freq[i] = (freq[i]-minimum)/(maximum-minimum);
+			freq[i] = max(0.0, (freq[i] - minimum)/(maximum-minimum));
 			if (freq[i] > 1.0){
 				printf("BLAD\n");
 			}
@@ -309,7 +303,7 @@ void CSample::saveFrequenciesTxt(const string& filename){
 		fprintf(stderr, "Unable to create file: %s\n", filename.c_str());
 		return;
 	}
-	for (uint i=0; i<freqCount; ++i){
+	for (size_t i=0; i<frequencies.size(); ++i){
 		for (uint j=0; j<COUNT_FREQ; ++j){
 			fprintf(file, "%e ", frequencies[i].freq[j]);
 		}
@@ -427,23 +421,21 @@ void CFFT::compute(double * _in, SFrequencies& _out){
 	}
 }
 
-int computeFrequencies(double * _in, SFrequencies **_out, OrigFrequencies ** _oOut, int n){
+void computeFrequencies(double * _in, std::vector<SFrequencies>& _out, std::vector<OrigFrequencies>& _oOut, int n){
 	int sfCount = (n-FFT_SIZE)/SEGMENT_FRAMES + 1;
-	*_out = new SFrequencies[sfCount];
-	*_oOut = new OrigFrequencies[sfCount];
+	_out.resize(sfCount);
+	_oOut.resize(sfCount);
 	for (int i=0; i<sfCount; ++i) {
-		CFFT::sCompute(_in+i*SEGMENT_FRAMES, (*_out)[i], (*_oOut)[i]);
+		CFFT::sCompute(_in+i*SEGMENT_FRAMES, _out[i], _oOut[i]);
 	}
-	return sfCount;
 }
 
-int computeFrequencies(double * _in, SFrequencies **_out, int n){
+void computeFrequencies(double * _in, std::vector<SFrequencies>& _out, int n){
 	int sfCount = (n-FFT_SIZE)/SEGMENT_FRAMES + 1;
-	*_out = new SFrequencies[sfCount];
+	_out.resize(sfCount);
 	for (int i=0; i<sfCount; ++i) {
-		CFFT::sCompute(_in+i*SEGMENT_FRAMES, (*_out)[i]);
+		CFFT::sCompute(_in+i*SEGMENT_FRAMES, _out[i]);
 	}
-	return sfCount;
 }
 
 void CFFT::sCompute(double * in, SFrequencies& out, OrigFrequencies& oOut){
@@ -549,10 +541,11 @@ sampleid - uint32
 frequencies
 */
 int CSample::saveFrequencies(FILE * file){
+	uint freqCount = static_cast<uint>(frequencies.size());
 	fwrite(&freqCount, sizeof(freqCount), 1, file);
 	fwrite(&birdId, sizeof(birdId), 1, file);
 	fwrite(&id, sizeof(id), 1, file);
-	for (uint i=0; i<freqCount; ++i){
+	for (size_t i=0; i<frequencies.size(); ++i){
 		uint freqs[COUNT_FREQ];
 		for (uint j=0; j<COUNT_FREQ; ++j){
 			freqs[j] = (int)(frequencies[i].freq[j]*4294967295u);
