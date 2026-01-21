@@ -21,90 +21,11 @@
 #include "detect.hxx"
 #include <array>
 #include <cassert>
+#include <cstring>
 
 using namespace std;
 
 double SNR_MIN = 3.0;
-
-template <class T>
-void RectangleWindow(T* in, T* out, int n){
-	for (int j=0; j<n; j++){
-		out[j] = in[j];
-	}
-}
-
-template <class T>
-void HanningWindow(T* in, T* out, int n){
-	// Prevent buffer overflow - window size must not exceed maximum
-	assert(n > 0 && n <= 4096 && "Window size must be between 1 and 4096");
-
-	static std::array<T, 4096> tab;
-	static bool initialized = false;
-	static int cached_n = 0;
-
-	// Re-initialize if window size changes or first time
-	if (!initialized || cached_n != n) {
-		for (int j = 0; j < n; j++) {
-			tab[j] = static_cast<T>(0.50 - 0.50 * cos(2 * PI * j / n));
-		}
-		initialized = true;
-		cached_n = n;
-	}
-
-	// Apply pre-computed window
-	for (int j = 0; j < n; j++) {
-		out[j] = in[j] * tab[j];
-	}
-}
-
-template <class T>
-void HammingWindow(T* in, T* out, int n){
-	// Prevent buffer overflow - window size must not exceed maximum
-	assert(n > 0 && n <= 4096 && "Window size must be between 1 and 4096");
-
-	static std::array<T, 4096> tab;
-	static bool initialized = false;
-	static int cached_n = 0;
-
-	// Re-initialize if window size changes or first time
-	if (!initialized || cached_n != n) {
-		for (int j = 0; j < n; j++) {
-			tab[j] = static_cast<T>(0.54 - 0.46 * cos(2 * PI * j / n));
-		}
-		initialized = true;
-		cached_n = n;
-	}
-
-	// Apply pre-computed window
-	for (int j = 0; j < n; j++) {
-		out[j] = in[j] * tab[j];
-	}
-}
-
-template <class T>
-void BlackmanWindow(T* in, T* out, int n){
-	// Prevent buffer overflow - window size must not exceed maximum
-	assert(n > 0 && n <= 4096 && "Window size must be between 1 and 4096");
-
-	static std::array<T, 4096> tab;
-	static bool initialized = false;
-	static int cached_n = 0;
-
-	// Re-initialize if window size changes or first time
-	if (!initialized || cached_n != n) {
-		int n_1 = n - 1;
-		for (int j = 0; j < n; j++) {
-			tab[j] = static_cast<T>(0.42 - 0.5 * cos(2 * PI * j / n_1) + 0.08 * cos(4 * PI * j / n_1));
-		}
-		initialized = true;
-		cached_n = n;
-	}
-
-	// Apply pre-computed window
-	for (int j = 0; j < n; j++) {
-		out[j] = in[j] * tab[j];
-	}
-}
 
 CSignal::CSignal(const string& filename){
 	loadAudio(filename);
@@ -452,7 +373,7 @@ SFrequencies::SFrequencies(){
 SFrequencies::~SFrequencies(){
 }
 
-SFrequencies::SFrequencies(SFrequencies& b){
+SFrequencies::SFrequencies(const SFrequencies& b){
 	memcpy(freq, b.freq, sizeof(*freq)*COUNT_FREQ);
 }
 
@@ -463,7 +384,7 @@ void SFrequencies::consume(SFrequencies&){
 	// }
 }
 
-double SFrequencies::differ(SFrequencies& other){
+double SFrequencies::differ(const SFrequencies& other) const {
 	double dif = 0;
 	int count = 0;
 	for (uint i=0; i<COUNT_FREQ; i++){
@@ -484,7 +405,7 @@ double SFrequencies::differ(SFrequencies& other){
 OrigFrequencies::OrigFrequencies(){
 }
 
-OrigFrequencies::OrigFrequencies(OrigFrequencies & b){
+OrigFrequencies::OrigFrequencies(const OrigFrequencies & b){
 	memcpy(freq, b.freq, sizeof(*freq)*FFT_SIZE);
 }
 
@@ -497,7 +418,7 @@ void saveSamples(vector<CSample*>& samples, string dir = "pociete/", bool freque
 		char buf[10];
 		for (uint i=0; i<samples.size(); i++){
 			sprintf(buf, "%d", i);
-			string& name = samples[i]->getName();
+			const string& name = samples[i]->getName();
 			string filename = dir + name + "." + buf;
 			if (frequencies){
 				// samples[i]->saveFrequencies(filename + ".freq");

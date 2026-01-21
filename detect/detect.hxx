@@ -37,13 +37,13 @@
 #include <QProgressBar>
 #endif
 
-void test(vector<CSample*>& samples, vector<CSample*>& learning);
-CSample * test(CSample * tested, vector<CSample*>& learning, bool print = true);
-vector<CSample*>* categorize(vector<CSample*>& samples, double delta);
-void analyze(vector<CSample*>& samples, vector<CSample*>& learning);
+void test(std::vector<CSample*>& samples, std::vector<CSample*>& learning);
+CSample * test(CSample * tested, std::vector<CSample*>& learning, bool print = true);
+std::vector<CSample*>* categorize(std::vector<CSample*>& samples, double delta);
+void analyze(std::vector<CSample*>& samples, std::vector<CSample*>& learning);
 #ifdef QT_CORE_LIB
-vector<CSample*> readLearning(const char* dirName, QProgressBar* progress = NULL);
-#else 
-vector<CSample*> readLearning(const char* dirName);
+std::vector<CSample*> readLearning(const char* dirName, QProgressBar* progress = NULL);
+#else
+std::vector<CSample*> readLearning(const char* dirName);
 #endif
 #endif

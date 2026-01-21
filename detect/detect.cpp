@@ -19,6 +19,9 @@
 
 #include <sys/types.h>
 #include <dirent.h>
+#include <cstring>
+#include <algorithm>
+#include <random>
 
 #include "detect.hxx"
 #include "Manager.hxx"
@@ -37,7 +40,9 @@ void crossTest(vector<CSample*> &samples, uint split = 10){
 	if (verbose) {
 		printf("Rozpoczynam cross-test\n");
 	}
-	random_shuffle(samples.begin(), samples.end());
+	std::random_device rd;
+	std::mt19937 g(rd());
+	std::shuffle(samples.begin(), samples.end(), g);
 	map<uint, map<uint, int> > mismatch;
 	map<uint, int> match;
 	map<uint, int> count;
