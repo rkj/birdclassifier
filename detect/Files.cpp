@@ -185,7 +185,7 @@ CWaveFile::~CWaveFile(){
 	sf_close(file);
 }
 
-void CWaveFile::fillBuffer() throw(exception){
+void CWaveFile::fillBuffer(){
 	if (sampleRate == 44100 && channels == 1){
 		sf_read_double(file, buffer, BUF_SIZE);
 	} else if (sampleRate == 44100 && channels == 2){
