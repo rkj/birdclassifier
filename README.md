@@ -126,8 +126,7 @@ The application combines digital signal processing, pattern recognition, and int
 - **Competition**: CSIDC
 
 **External Resources**:
-- [BirdWatch Project Website](http://www.birdwatch.pl) *(may be offline)*
-- [BirdWatch Final Report (PDF)](http://eureka.put.poznan.pl/bird/files/BirdWatch-final.pdf) *(may be offline)*
+- [BirdWatch Final Report (PDF)](https://www.dropbox.com/scl/fi/0i752ctsvard7md0nwwr5/Poznan-University-of-Technology-BirdWatch.pdf?rlkey=h0c8oc3167u41vg1rp2p6a4zi&st=5xe6fkn3&dl=0)
 
 ---
 
