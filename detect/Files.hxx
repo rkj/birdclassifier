@@ -59,7 +59,7 @@ class CFile {
 		uint bufPos;
 		double buffer[2*BUF_SIZE];
 
-		virtual void fillBuffer() throw(std::exception) = 0;
+		virtual void fillBuffer() = 0;
 		int readSamples;
 };
 
@@ -71,7 +71,7 @@ class CMemoryFile : public CFile {
 		~CMemoryFile(){
 		}
 	protected:
-		void fillBuffer() throw (std::exception) { 
+		void fillBuffer() {
 		}
 	private:
 		double * data;
@@ -82,7 +82,7 @@ class CMP3File : public CFile {
 		CMP3File(const std::string& filename);
 		~CMP3File();
 	protected:
-		void fillBuffer() throw(std::exception);
+		void fillBuffer();
 	private:
 		char fileBuffer[BUF_SIZE];
 		bool needToReadFile;
@@ -101,7 +101,7 @@ class CWaveFile : public CFile {
 		CWaveFile(const std::string& filename);
 		~CWaveFile();
 	protected:
-		void fillBuffer() throw(std::exception);
+		void fillBuffer();
 	private:
 		SF_INFO sf_info;
 		SNDFILE* file;
