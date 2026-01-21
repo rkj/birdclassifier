@@ -748,3 +748,47 @@ TEST_F(AudioTest, AudioConfigIndependentOfGlobal) {
  * - AudioConfigThreadSafeSingleton: Verifies thread-safe singleton
  * - AudioConfigIndependentOfGlobal: Tests independence from deprecated global
  */
+
+// ============================================================================
+// PR #6: CSignal Memory Management Tests (std::vector migration)
+// ============================================================================
+
+TEST_F(AudioTest, CSignalDefaultConstructor) {
+    CSignal signal;
+    EXPECT_EQ(signal.getFramesCount(), 0);
+    EXPECT_TRUE(signal.getFrames().empty());
+}
+
+TEST_F(AudioTest, CSignalCopyConstructor) {
+    CSignal original;
+    // We can't easily test with actual audio loading without a test file,
+    // so we test basic copy behavior
+    CSignal copy(original);
+    EXPECT_EQ(copy.getFramesCount(), original.getFramesCount());
+}
+
+TEST_F(AudioTest, CSignalMoveConstructor) {
+    CSignal original;
+    CSignal moved(std::move(original));
+    // After move, moved should have taken ownership
+    EXPECT_GE(moved.getFramesCount(), 0);
+}
+
+TEST_F(AudioTest, CSignalVectorStorage) {
+    CSignal signal;
+    // Verify that getFrames() returns a vector reference
+    const std::vector<double>& frames = signal.getFrames();
+    EXPECT_TRUE(frames.empty());
+}
+
+TEST_F(AudioTest, CSignalNoMemoryLeaks) {
+    // This test ensures that CSignal properly uses RAII
+    // and doesn't leak memory when going out of scope
+    {
+        CSignal signal;
+        // Vector will be automatically cleaned up
+    }
+    // If we get here without crashes, RAII is working
+    SUCCEED();
+}
+

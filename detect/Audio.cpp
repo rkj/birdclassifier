@@ -106,29 +106,8 @@ void BlackmanWindow(T* in, T* out, int n){
 	}
 }
 
-CSignal::CSignal(){
-	frames = NULL;
-	framesCount = 0;
-	sampleRate = 0;
-}
-
 CSignal::CSignal(const string& filename){
 	loadAudio(filename);
-}
-
-CSignal::CSignal(CSignal& b){
-	sampleRate = b.sampleRate;
-	framesCount = b.framesCount;
-	frames = new double[framesCount];
-	name = b.name;
-	memcpy(frames, b.frames, sizeof(*frames)*framesCount);
-}
-
-CSignal::~CSignal(){
-	if (frames != NULL){
-		delete [] frames;
-		frames = NULL;
-	}
 }
 double CSignal::computePower(int startFrame, int framesCount){
 	double energy = 0;
@@ -146,16 +125,20 @@ void CSignal::loadAudio(const string& filename){
 	if (file == NULL){
 		throw string("File not found");
 	}
-	framesCount = sf_info.frames;
 	sampleRate = sf_info.samplerate;
-	double *tmp = new double[framesCount*sf_info.channels];
-	sf_read_double(file, tmp, framesCount);
+	size_t numFrames = sf_info.frames;
+
 	if (sf_info.channels == 1){
-		frames = tmp;
+		// Mono: read directly into frames vector
+		frames.resize(numFrames);
+		sf_read_double(file, frames.data(), numFrames);
 	} else {
-		frames = new double[framesCount];
-		for (int i = 0; i<framesCount; i++){
-			frames[i] = tmp[sf_info.channels*i];
+		// Stereo/Multi-channel: read into temp buffer, then extract first channel
+		std::vector<double> tmp(numFrames * sf_info.channels);
+		sf_read_double(file, tmp.data(), numFrames);
+		frames.resize(numFrames);
+		for (size_t i = 0; i < numFrames; i++){
+			frames[i] = tmp[sf_info.channels * i];
 		}
 	}
 	sf_close(file);
@@ -170,13 +153,13 @@ void CSignal::saveAudio(const string& filename){
 	if (file == NULL){
 		throw string("Unable to create file for writing audio");
 	}
-	sf_write_double(file, frames, framesCount);
+	sf_write_double(file, frames.data(), frames.size());
 	sf_close(file);
 }
 
 CSample::CSample(const string& filename) : CSignal(filename) {
 	birdId = birdIdFromName(getName());
-	freqCount = computeFrequencies(frames, &frequencies, &origFrequencies, framesCount);
+	freqCount = computeFrequencies(frames.data(), &frequencies, &origFrequencies, frames.size());
 	isNull = false;
 	normalize();
 }
@@ -187,10 +170,8 @@ CSample::CSample(double* _frames, int n, uint _sampleRate, uint _id, uint start,
 		throw exception();
 	}
 	sampleRate = _sampleRate;
-	framesCount = n;
-	frames = new double[n];
-	memcpy(frames, _frames, sizeof(*frames)*n);
-	freqCount = computeFrequencies(frames, &frequencies, &origFrequencies, framesCount);
+	frames.assign(_frames, _frames + n);
+	freqCount = computeFrequencies(frames.data(), &frequencies, &origFrequencies, frames.size());
 	isNull = false;
 	normalize();
 	id = _id;
@@ -205,12 +186,8 @@ CSample::CSample(vector<double>& samples, int startS, int n, uint _sampleRate, u
 		throw exception();
 	}
 	sampleRate = _sampleRate;
-	framesCount = n;
-	frames = new double[n];
-	for (int i=startS; i<startS+n; i++){
-		frames[i-startS] = samples[i];
-	}
-	freqCount = computeFrequencies(frames, &frequencies, &origFrequencies, framesCount);
+	frames.assign(samples.begin() + startS, samples.begin() + startS + n);
+	freqCount = computeFrequencies(frames.data(), &frequencies, &origFrequencies, frames.size());
 	isNull = false;
 	normalize();
 	id = _id;
@@ -244,9 +221,9 @@ CSample::CSample(SFrequencies* freqs, uint freqcount, uint birdid, uint sampleid
 	frequencies = freqs;
 	freqCount = freqcount;
 	this->birdId = birdid;
-	this->id = sampleid; 
+	this->id = sampleid;
 	sampleRate = 0;
-	framesCount = 0;
+	// frames is empty (default constructed)
 	isNull = false;
 	startSample = 0;
 	endSample = 0;
@@ -359,7 +336,9 @@ CAudio::CAudio(const string& filename) : CSignal(filename){
 	int minSamples = (int)(minTime * sampleRate);
 	int count = 0;
 	uint birdid = birdIdFromName(getName());
-	for (int i=0; i<framesCount/delta; i++){
+	size_t numFrames = frames.size();
+
+	for (size_t i = 0; i < numFrames / delta; i++){
 		double power = computePower(i*delta, delta);
 		if (power > cutoff) {
 			if (start == -1) {
@@ -379,8 +358,8 @@ CAudio::CAudio(const string& filename) : CSignal(filename){
 					if (end-start < CFFT::sGetFFTsize()){
 						end += CFFT::sGetFFTsize() - end + start + 1;
 					}
-					end = min (end + backSamples, framesCount);
-					samples.push_back(new CSample(&frames[start], end-start, sampleRate, ++id, start, end, birdid));
+					end = min (end + backSamples, (int)numFrames);
+					samples.push_back(new CSample(frames.data() + start, end-start, sampleRate, ++id, start, end, birdid));
 					Dprintf3("Wycinam: %fs-%fs\n", 1.0*start/sampleRate, 1.0*end/sampleRate);
 				}
 				start = -1;
@@ -389,14 +368,15 @@ CAudio::CAudio(const string& filename) : CSignal(filename){
 		}
 	}
 	if (start != -1){
-		if (framesCount-start >= CFFT::sGetFFTsize()){
-			samples.push_back(new CSample(&frames[start], end-start, sampleRate, ++id, start, end, birdid));
+		if ((int)numFrames - start >= CFFT::sGetFFTsize()){
+			samples.push_back(new CSample(frames.data() + start, end-start, sampleRate, ++id, start, end, birdid));
 		}
 	}
 	Dprintf2("Sample: %s\n", filename.c_str());
 	Dprintf2("Found: %d samples\n", samples.size());
-	delete [] frames;
-	frames = NULL;
+	// Clear frames vector to free memory (CSample objects have their own copies)
+	frames.clear();
+	frames.shrink_to_fit();
 }
 
 CAudio::~CAudio(){
