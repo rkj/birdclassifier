@@ -177,12 +177,12 @@ class CSample : public CSignal {
 		void saveFrequencies(const std::string& filename);
 		int saveFrequencies(FILE *);
 		void saveFrequenciesTxt(const std::string& filename);
-		CSample(CSample&);
+		CSample(const CSample&);
 		explicit CSample(const std::string& filename);
 		explicit CSample(SFrequencies*, uint freqcount, uint birdid, uint sampleid);
 		explicit CSample(double *, int n, uint sampleRate, uint id, uint start, uint end, uint bid);
 		explicit CSample(std::vector<double>&, int start, int n, uint sampleRate, uint id, uint start, uint end, uint bid);
-		~CSample();
+		~CSample() = default;
 
 		uint getStartSampleNo() const {
 			return startSample;
@@ -199,14 +199,14 @@ class CSample : public CSignal {
 		uint getBirdId() const {
 			return birdId;
 		}
-		const OrigFrequencies * getOrigFrequencies() const {
+		const std::vector<OrigFrequencies>& getOrigFrequencies() const {
 			return origFrequencies;
 		}
-		const SFrequencies * getFrequencies() const {
+		const std::vector<SFrequencies>& getFrequencies() const {
 			return frequencies;
 		}
-		uint getFreqCount() const {
-			return freqCount;
+		size_t getFreqCount() const {
+			return frequencies.size();
 		}
 		std::string getBirdAndId() const {
 			std::ostringstream oss;
@@ -215,9 +215,8 @@ class CSample : public CSignal {
 		}
 	private:
 		bool isNull;
-		uint freqCount;
-		SFrequencies *frequencies;
-		OrigFrequencies *origFrequencies;
+		std::vector<SFrequencies> frequencies;
+		std::vector<OrigFrequencies> origFrequencies;
 		void normalize();
 		uint startSample;
 		uint endSample;
@@ -237,8 +236,8 @@ class CAudio : public CSignal {
 		~CAudio();
 };
 
-int computeFrequencies(double * _in, SFrequencies **_out, int n);
-int computeFrequencies(double * _in, SFrequencies **_out, OrigFrequencies ** _oOut, int n);
+void computeFrequencies(double * _in, std::vector<SFrequencies>& _out, int n);
+void computeFrequencies(double * _in, std::vector<SFrequencies>& _out, std::vector<OrigFrequencies>& _oOut, int n);
 void saveSamples(std::vector<CSample*>& samples, std::string dir, bool frequencies);
 
 inline double computePower(double frames[], int framesCount){
