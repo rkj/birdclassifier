@@ -18,11 +18,13 @@
 */
 
 #include "SpectroDraw.hxx"
+#include <QScrollBar>
+#include <algorithm>
 
 void SpectroDraw::init(){
 	setupUi(this);
-	connect( horizontalScrollBar, SIGNAL(valueChanged(int)), spectrogram, SLOT(xStartChange(int)) );
-	connect( verticalScrollBar, SIGNAL(valueChanged(int)), spectrogram, SLOT(yStartChange(int)) );
+	connect(horizontalScrollBar, &QScrollBar::valueChanged, spectrogram, &CSpectrogram::xStartChange);
+	connect(verticalScrollBar, &QScrollBar::valueChanged, spectrogram, &CSpectrogram::yStartChange);
 	tuneSliders();
 	freqCount = 0;
 }
@@ -36,11 +38,11 @@ SpectroDraw::SpectroDraw(QGroupBox* q) : QWidget(q){
 }
 
 void SpectroDraw::tuneSliders(){
-	// horizontalScrollBar->setMaximum(max(freqCount - (spectrogram->width()-CSpectrogram::LEGEND_WIDTH)/CSpectrogram::X_SCALE, 0));
-	horizontalScrollBar->setMaximum(max(freqCount - (spectrogram->width()-CSpectrogram::LEGEND_WIDTH)/CSpectrogram::X_SCALE, 0));
+	// horizontalScrollBar->setMaximum(std::max(freqCount - (spectrogram->width()-CSpectrogram::LEGEND_WIDTH)/CSpectrogram::X_SCALE, 0));
+	horizontalScrollBar->setMaximum(std::max(freqCount - (spectrogram->width()-CSpectrogram::LEGEND_WIDTH)/CSpectrogram::X_SCALE, 0));
 	horizontalScrollBar->setPageStep((spectrogram->width()-CSpectrogram::LEGEND_WIDTH)/CSpectrogram::X_SCALE);
 
-	int left = max(spectrogram->MaxFreq() + CSpectrogram::LEGEND_HEIGHT + 15 - spectrogram->height(), 0);
+	int left = std::max(spectrogram->MaxFreq() + CSpectrogram::LEGEND_HEIGHT + 15 - spectrogram->height(), 0);
 	verticalScrollBar->setMaximum(left);
 	verticalScrollBar->setPageStep(spectrogram->height());
 	spectrogram->update();

@@ -106,10 +106,16 @@ target_compile_definitions(bsc_core PUBLIC
 
 # GUI application (optional)
 if(BUILD_GUI)
-    find_package(Qt4 COMPONENTS QtCore QtGui)
+    find_package(Qt6 COMPONENTS Core Gui Widgets)
 
-    if(Qt4_FOUND)
-        include(${QT_USE_FILE})
+    if(Qt6_FOUND)
+        # Enable Qt6 automatic MOC, UIC, and RCC processing
+        set(CMAKE_AUTOMOC ON)
+        set(CMAKE_AUTOUIC ON)
+        set(CMAKE_AUTORCC ON)
+
+        # Add Qt to bsc_core for GUI-aware code (e.g., readLearning with QProgressBar)
+        target_link_libraries(bsc_core PUBLIC Qt6::Core Qt6::Widgets)
 
         set(GUI_SOURCES
             MainWindow.cpp
@@ -152,30 +158,29 @@ if(BUILD_GUI)
             Images.qrc
         )
 
-        qt4_wrap_cpp(GUI_MOC_SOURCES ${GUI_HEADERS})
-        qt4_wrap_ui(GUI_UI_HEADERS ${GUI_FORMS})
-        qt4_add_resources(GUI_QRC_SOURCES ${GUI_RESOURCES})
-
         add_executable(BSC
             ${GUI_SOURCES}
-            ${GUI_MOC_SOURCES}
-            ${GUI_UI_HEADERS}
-            ${GUI_QRC_SOURCES}
+            ${GUI_HEADERS}
+            ${GUI_FORMS}
+            ${GUI_RESOURCES}
         )
 
         target_link_libraries(BSC PRIVATE
             bsc_core
-            ${QT_LIBRARIES}
+            Qt6::Core
+            Qt6::Gui
+            Qt6::Widgets
         )
 
         target_include_directories(BSC PRIVATE
             ${CMAKE_CURRENT_BINARY_DIR}  # For generated UI headers
+            ${CMAKE_CURRENT_BINARY_DIR}/BSC_autogen/include  # For AUTOMOC generated headers
         )
 
-        message(STATUS "GUI application will be built")
+        message(STATUS "GUI application will be built with Qt6")
     else()
-        message(WARNING "Qt4 not found - GUI application will not be built")
-        message(STATUS "To build GUI, install Qt4 development files")
+        message(WARNING "Qt6 not found - GUI application will not be built")
+        message(STATUS "To build GUI, install Qt6 development files (qt6-base-dev)")
     endif()
 endif()
 

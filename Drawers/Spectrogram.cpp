@@ -19,6 +19,7 @@
 
 #include "Spectrogram.hxx"
 #include <QPainter>
+#include <algorithm>
 
 int CSpectrogram::X_SCALE = 2;
 double CSpectColor::BRIGHTNESS = 1.0100;
@@ -33,7 +34,7 @@ void CSpectrogram::paintEvent(QPaintEvent *event){
 	int xFrom = event->rect().x();
 	int yFrom = event->rect().y();
 	int xTo = (event->rect().width() - LEGEND_WIDTH)/X_SCALE + xFrom ;
-	xTo = min ((int)freqCount-xStart-1, xTo);
+	xTo = std::min((int)freqCount-xStart-1, xTo);
 	int yTo = event->rect().height() + yFrom;
 
 	QPainter paint(this);
@@ -41,7 +42,7 @@ void CSpectrogram::paintEvent(QPaintEvent *event){
 	paint.setPen(Qt::red);
 
 	if (origFrequencies != NULL){
-		yTo = min(maxFreq - yStart, yTo);
+		yTo = std::min(maxFreq - yStart, yTo);
 		for (int x = xFrom; x < xTo; x++){
 			for (int y = yFrom; y < yTo; y++){
 				double value = origFrequencies[x+xStart].freq[maxFreq-y-yStart];
@@ -64,7 +65,7 @@ void CSpectrogram::paintEvent(QPaintEvent *event){
 			paint.drawText(2, y-7 - yStart, 40, 20, Qt::AlignRight, buf);
 		}
 	} else if (frequencies != NULL) {
-		yTo = min((int)(COUNT_FREQ-1-yStart), yTo);
+		yTo = std::min((int)(COUNT_FREQ-1-yStart), yTo);
 		// printf("FREQ_COUNT: %d, width(): %d, height(): %d\n", freqCount, width(), height());
 		for (int x = xFrom; x < xTo; x++){
 			for (int y = yFrom; y < yTo; y++){
@@ -101,7 +102,7 @@ void CSpectrogram::paintEvent(QPaintEvent *event){
 	paint.setPen(Qt::black);
 	paint.drawText(LEGEND_WIDTH, maxFreq + LEGEND_HEIGHT + 12 - yStart, description);
 	const int STEP = 40;
-	int to = min(width(), (int)freqCount*X_SCALE+LEGEND_WIDTH);
+	int to = std::min(width(), (int)freqCount*X_SCALE+LEGEND_WIDTH);
 	int start = LEGEND_WIDTH-xStart%STEP;
 	if (start < LEGEND_WIDTH){
 		start += STEP;
@@ -140,16 +141,16 @@ void CSpectrogram::setSample(CSample * sample, bool original){
 		minValue = 10e10;
 		maxValue = -10e10;
 		// printf("%g; %g\n", minValue, maxValue);
-		origFrequencies = sample->getOrigFrequencies();
+		origFrequencies = const_cast<OrigFrequencies*>(sample->getOrigFrequencies().data());
 		for (uint i=0; i<freqCount; ++i){
-			maxValue = max (maxValue, origFrequencies[i].maxValue);
-			minValue = min (minValue, origFrequencies[i].minValue);
+			maxValue = std::max(maxValue, origFrequencies[i].maxValue);
+			minValue = std::min(minValue, origFrequencies[i].minValue);
 		}
 		// printf("%g; %g\n", minValue, maxValue);
 		frequencies = NULL;
 	} else {
 		maxFreq = COUNT_FREQ-1;
-		frequencies = sample->getFrequencies();
+		frequencies = const_cast<SFrequencies*>(sample->getFrequencies().data());
 		origFrequencies = NULL;
 	}
 	update();

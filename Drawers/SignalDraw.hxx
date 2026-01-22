@@ -21,7 +21,7 @@
 #define _SIGNALDRAW_HXX
 
 #include "ui_SignalDraw.h"
-#include <QtDesigner/QDesignerExportWidget>
+#include <vector>
 
 class SignalDraw : public QWidget, private Ui::SignalDraw {
 	Q_OBJECT
@@ -32,7 +32,7 @@ class SignalDraw : public QWidget, private Ui::SignalDraw {
 			samples = 0;
 			drawingArea->setSignal();
 		}
-		void setSignal(vector<double> &values){
+		void setSignal(std::vector<double> &values){
 			samples = values.size();
 			drawingArea->setSignal(values);
 		}

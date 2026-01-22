@@ -19,12 +19,13 @@
 
 #include "EnergyDrawWidget.hxx"
 #include "../detect/Audio.hxx"
+#include <QSlider>
 
 extern double POWER_CUTOFF;
 void EnergyDrawWidget::init(){
 	setupUi(this);
 
-	connect( cutOff, SIGNAL(valueChanged(int)), energy, SLOT(changeCutOff(int)) );
+	connect(cutOff, &QSlider::valueChanged, energy, &CEnergyDraw::changeCutOff);
 
 	// cutOff->setValue(powerTodB(POWER_CUTOFF));
 	cutOff->setValue(74+CEnergyDraw::LEGEND_HEIGHT);

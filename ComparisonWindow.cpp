@@ -37,7 +37,7 @@ ComparisonWindow::ComparisonWindow(QWidget *parent, CSample* sample, vector<CSam
 	spectroDraw->setSample(sample, false);
 	QVBoxLayout * myVBox = new QVBoxLayout(frame);
 	myVBox->setSpacing(1);
-	myVBox->setMargin(1);
+	myVBox->setContentsMargins(1, 1, 1, 1);
 	myVBox->setObjectName(QString::fromUtf8("myVBox"));
 
 	CCompareResults cr[learn.size()];
@@ -50,7 +50,7 @@ ComparisonWindow::ComparisonWindow(QWidget *parent, CSample* sample, vector<CSam
 	QString txt;
 	for (uint i=0; i<COUNT; i++){
 		spectros[i] = new SpectroDraw(frame);
-		spectros[i]->setObjectName(QString("learningSpectro") + i);
+		spectros[i]->setObjectName(QString("learningSpectro") + QString::number(i));
     spectros[i]->setMinimumSize(QSize(250, 160));
 		spectros[i]->setSample(cr[i].sample, false);
 		QString desc = QString("%1 (%2)").arg(cr[i].sample->getName().c_str()).arg(cr[i].diff, 0, 'g', 3);

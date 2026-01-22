@@ -21,6 +21,9 @@
 #include "LearningDialog.hxx"
 
 #include <QMutex>
+#include <QPushButton>
+#include <QAction>
+#include <QSlider>
 
 using namespace std;
 QMutex samplesMutex;
@@ -68,40 +71,40 @@ int MainWindow::playRecordCallback(char *buffer, int bufferSize, void * data){
 
 void MainWindow::init(){
 	setupUi( this );
-	connect( chooseFileBtn, SIGNAL(clicked()), actionOpen, SLOT(trigger()) );
-	connect( loadFileBtn, SIGNAL(clicked()), this, SLOT(loadClicked()) );
+	connect(chooseFileBtn, &QPushButton::clicked, actionOpen, &QAction::trigger);
+	connect(loadFileBtn, &QPushButton::clicked, this, &MainWindow::loadClicked);
 
-	connect( chooseLearningBtn, SIGNAL(clicked()), actionLoadLerningSet, SLOT(trigger()) );
-	connect( loadLearningBtn, SIGNAL(clicked()), this, SLOT(loadLearningClicked()) );
+	connect(chooseLearningBtn, &QPushButton::clicked, actionLoadLerningSet, &QAction::trigger);
+	connect(loadLearningBtn, &QPushButton::clicked, this, &MainWindow::loadLearningClicked);
 
-	connect( audioSignalDraw->getAudioDraw(), SIGNAL(viewRegionChanged(int, int)), filteredDraw, SLOT(changeViewRegion(int, int)));
-	connect( audioSignalDraw->getAudioDraw(), SIGNAL(viewRegionChanged(int, int)), energyDraw->getEnergy(), SLOT(changeViewRegion(int, int)));
-	connect( filteredDraw->getAudioDraw(), SIGNAL(viewRegionChanged(int, int)), audioSignalDraw, SLOT(changeViewRegion(int, int)) );
+	connect(audioSignalDraw->getAudioDraw(), &AudioDraw::viewRegionChanged, filteredDraw, &SignalDraw::changeViewRegion);
+	connect(audioSignalDraw->getAudioDraw(), &AudioDraw::viewRegionChanged, energyDraw->getEnergy(), &CEnergyDraw::changeViewRegion);
+	connect(filteredDraw->getAudioDraw(), &AudioDraw::viewRegionChanged, audioSignalDraw, &SignalDraw::changeViewRegion);
 
-	connect( audioSignalDraw->getAudioDraw(), SIGNAL(samplesSelected(int, int)), this, SLOT(selectedSamples(int, int)));
-	connect( filteredDraw->getAudioDraw(), SIGNAL(samplesSelected(int, int)), this, SLOT(selectedSamples(int, int)) );
+	connect(audioSignalDraw->getAudioDraw(), &AudioDraw::samplesSelected, this, &MainWindow::selectedSamples);
+	connect(filteredDraw->getAudioDraw(), &AudioDraw::samplesSelected, this, &MainWindow::selectedSamples);
 
-	connect( audioSignalDraw->getSlider(), SIGNAL(valueChanged(int)), filteredDraw->getSlider(), SLOT(setValue(int)) );
-	connect( audioSignalDraw->getSlider(), SIGNAL(valueChanged(int)), segmentDraw->getSlider(), SLOT(setValue(int)) );
+	connect(audioSignalDraw->getSlider(), &QSlider::valueChanged, filteredDraw->getSlider(), &QSlider::setValue);
+	connect(audioSignalDraw->getSlider(), &QSlider::valueChanged, segmentDraw->getSlider(), &QSlider::setValue);
 
-	connect( energyDraw->getEnergy(), SIGNAL(selectedFragments(list<sRegion>&)), audioSignalDraw->getAudioDraw(), SLOT(setSelection(list<sRegion>&)) );
-	connect( energyDraw->getEnergy(), SIGNAL(selectedFragments(list<sRegion>&)), filteredDraw->getAudioDraw(), SLOT(setSelection(list<sRegion>&)) );
+	connect(energyDraw->getEnergy(), &CEnergyDraw::selectedFragments, audioSignalDraw->getAudioDraw(), &AudioDraw::setSelection);
+	connect(energyDraw->getEnergy(), &CEnergyDraw::selectedFragments, filteredDraw->getAudioDraw(), &AudioDraw::setSelection);
 
-	connect( actionOpen, SIGNAL(triggered()), this, SLOT(chooseClicked()) );
-	connect( actionLoadLerningSet, SIGNAL(triggered()), this, SLOT(chooseDirectoryClicked()) );
-	connect( actionPlaySelection, SIGNAL(triggered()), this, SLOT(playSelected()) );
-	connect( actionRecord, SIGNAL(triggered()), this, SLOT(record()) );
-	connect( actionStop, SIGNAL(triggered()), this, SLOT(stopPlaying()) );
-	connect( actionExit, SIGNAL(triggered()), this, SLOT(close()) );
-	connect( actionMakeSpectrogram, SIGNAL(triggered()), audioSignalDraw->getAudioDraw(), SLOT(emitSelected()));
-	connect( actionZoomIn, SIGNAL(triggered()), audioSignalDraw->getAudioDraw(), SLOT(zoomSelected()));
-	connect( actionZoom11, SIGNAL(triggered()), audioSignalDraw->getAudioDraw(), SLOT(zoom11()));
-	connect( actionZoomOut, SIGNAL(triggered()), audioSignalDraw->getAudioDraw(), SLOT(zoomOut()));
-	connect( actionCompare, SIGNAL(triggered()), this, SLOT(openCompareWindow()) );
-	connect( actionSettings, SIGNAL(triggered()), this, SLOT(openSettingsWindow()) );
-	connect( actionSaveSelection, SIGNAL(triggered()), this, SLOT(saveSelection()) );
-	connect( actionOpenLearningEditor, SIGNAL(triggered()), this, SLOT(openLearningEditor()) );
-	connect( actionReadLearning, SIGNAL(triggered()), this, SLOT(readLearningFile()) );
+	connect(actionOpen, &QAction::triggered, this, &MainWindow::chooseClicked);
+	connect(actionLoadLerningSet, &QAction::triggered, this, &MainWindow::chooseDirectoryClicked);
+	connect(actionPlaySelection, &QAction::triggered, this, &MainWindow::playSelected);
+	connect(actionRecord, &QAction::triggered, this, &MainWindow::record);
+	connect(actionStop, &QAction::triggered, this, &MainWindow::stopPlaying);
+	connect(actionExit, &QAction::triggered, this, &MainWindow::close);
+	connect(actionMakeSpectrogram, &QAction::triggered, audioSignalDraw->getAudioDraw(), &AudioDraw::emitSelected);
+	connect(actionZoomIn, &QAction::triggered, audioSignalDraw->getAudioDraw(), &AudioDraw::zoomSelected);
+	connect(actionZoom11, &QAction::triggered, audioSignalDraw->getAudioDraw(), &AudioDraw::zoom11);
+	connect(actionZoomOut, &QAction::triggered, audioSignalDraw->getAudioDraw(), &AudioDraw::zoomOut);
+	connect(actionCompare, &QAction::triggered, this, &MainWindow::openCompareWindow);
+	connect(actionSettings, &QAction::triggered, this, &MainWindow::openSettingsWindow);
+	connect(actionSaveSelection, &QAction::triggered, this, &MainWindow::saveSelection);
+	connect(actionOpenLearningEditor, &QAction::triggered, this, &MainWindow::openLearningEditor);
+	connect(actionReadLearning, &QAction::triggered, this, &MainWindow::readLearningFile);
 
 	filteredDraw->getAudioDraw()->setSelectable(false);
 	loadedFile = NULL;
@@ -258,7 +261,7 @@ void MainWindow::selectedCSample(CSample* sample){
 	audioSignalDraw->getAudioDraw()->setChosen(sample->getStartSampleNo(), sample->getEndSampleNo());
 	filteredDraw->getAudioDraw()->setChosen(sample->getStartSampleNo(), sample->getEndSampleNo());
 	selectedFrames.resize(sample->getFramesCount());
-	double* frames = sample->getFrames();
+	const std::vector<double>& frames = sample->getFrames();
 	double maxV = 0;
 	for (uint i=0; i<selectedFrames.size(); i++){
 		selectedFrames[i] = frames[i];
@@ -386,12 +389,12 @@ void MainWindow::openSettingsWindow(){
 	dial.xScaleSB->setValue(CSpectrogram::X_SCALE);
 	dial.brightnessSB->setValue(CSpectColor::BRIGHTNESS);
 	dial.colorsCB->setModel(colorsModel);
-	dial.colorsCB->setCurrentIndex(dial.colorsCB->findData((int)(CSpectrogram::COLORER), 9999));
+	dial.colorsCB->setCurrentIndex(dial.colorsCB->findData(QVariant::fromValue(reinterpret_cast<quintptr>(CSpectrogram::COLORER)), 9999));
 	if (dial.exec() == QDialog::Accepted){
 		CSpectrogram::X_SCALE = dial.xScaleSB->value();
 		CSpectColor::BRIGHTNESS = dial.brightnessSB->value();
 		QVariant q = dial.colorsCB->itemData(dial.colorsCB->currentIndex(), 9999);
-		CSpectColor* colorer = (CSpectColor*)q.value<int>();
+		CSpectColor* colorer = reinterpret_cast<CSpectColor*>(q.value<quintptr>());
 		CSpectrogram::COLORER = colorer;
 		update();
 	}

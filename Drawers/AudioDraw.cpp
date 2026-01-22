@@ -61,7 +61,7 @@ void AudioDraw::mouseReleaseEvent(QMouseEvent *event){
 		sRegion reg = findSample(panelToFrame(event->x()));
 		emit samplesSelected(reg.start, reg.end);
 	} 
-	if (event->button() == Qt::MidButton && selection.start != selection.end){
+	if (event->button() == Qt::MiddleButton && selection.start != selection.end){
 		emitSelected();
 	}
 }

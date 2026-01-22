@@ -17,6 +17,8 @@
  */
 
 #include "LearningDialog.hxx"
+#include "MyListView.hxx"
+#include <QItemSelectionModel>
 
 void LearningDialog::init(){
 	setupUi(this);
@@ -26,9 +28,8 @@ LearningDialog::~LearningDialog(){
 };
 
 void LearningDialog::connectAll(){
-	connect( learningList->selectionModel(), SIGNAL(currentChanged(const QModelIndex&, const QModelIndex&)), this, SLOT(changeCurrent(const QModelIndex&, const QModelIndex&)) );
-	// connect( learningList, SIGNAL(doubleClicked(const QModelIndex&)), this, SLOT(deleteIndex(const QModelIndex&)) );
-	connect( learningList, SIGNAL(backSpacePressed()), this, SLOT(deleteCurrent()) );
+	connect(learningList->selectionModel(), &QItemSelectionModel::currentChanged, this, &LearningDialog::changeCurrent);
+	connect(learningList, &CMyListView::backSpacePressed, this, &LearningDialog::deleteCurrent);
 }
 
 void LearningDialog::changeCurrent(const QModelIndex& index, const QModelIndex& /*previous*/){
@@ -36,7 +37,7 @@ void LearningDialog::changeCurrent(const QModelIndex& index, const QModelIndex& 
 		return;
 	}
 	QVariant q = index.data(9999);
-	CSample* sample = (CSample*)q.value<int>();
+	CSample* sample = reinterpret_cast<CSample*>(q.value<quintptr>());
 	spectroDraw->setSample(sample, false);
 }
 

@@ -1,7 +1,7 @@
 /*
 	QTDetection, bird voice visualization and comaprison.
 	Copyright (C) 2006 Roman Kamyk.
-	 
+
 	This program is free software; you can redistribute it and/or
 	modify it under the terms of the GNU General Public License
 	as published by the Free Software Foundation; either version 2
@@ -16,6 +16,9 @@
 	along with this program; if not, write to the Free Software
 	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
+
+#ifndef _COMPARISONWINDOW_HXX
+#define _COMPARISONWINDOW_HXX
 
 #include "ui_ComparisonWindow.h"
 #include <vector>
@@ -42,3 +45,4 @@ class ComparisonWindow : public QDialog, public Ui::ComparisonWindow {
 	private:
 };
 
+#endif // _COMPARISONWINDOW_HXX

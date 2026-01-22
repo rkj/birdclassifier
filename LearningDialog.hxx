@@ -1,23 +1,24 @@
 /*
 		QTDetection, bird voice visualization and comaprison.
 		Copyright (C) 2006 Roman Kamyk, All rights reserved.
- 
+
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
     License as published by the Free Software Foundation; either
     version 2.1 of the License, or (at your option) any later version.
- 
+
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Lesser General Public License for more details.
- 
+
     You should have received a copy of the GNU Lesser General Public
     License along with this library; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-
+#ifndef _LEARNINGDIALOG_HXX
+#define _LEARNINGDIALOG_HXX
 
 #include "ui_LearningDialog.h"
 #include <QAbstractListModel>
@@ -50,7 +51,7 @@ class LearningListModel : public QAbstractListModel
 			if (role == Qt::DisplayRole || role == Qt::EditRole) {
 				return (learning[index.row()]->getBirdAndId()).c_str();
 			} else if (role == 9999){
-				return (int)(learning[index.row()]);
+				return QVariant::fromValue(reinterpret_cast<quintptr>(learning[index.row()]));
 			} else {
 				return QVariant();
 			}
@@ -104,3 +105,5 @@ class LearningDialog : public QDialog, public Ui::LearningDialog {
 	private:
 			void init();
 };
+
+#endif // _LEARNINGDIALOG_HXX

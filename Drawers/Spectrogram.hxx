@@ -201,15 +201,15 @@ class CSpectrogram : public QLabel {
 			// return (FFT_SIZE/2)*(y)/height();
 			return (FFT_SIZE/2)*(height()-y)/height();
 		};
-		protected slots:
-			void xStartChange(int _x){
-				if (_x<0){
-					return;
-				}
-				// printf("[%s] Ustawiam xStart na: %d\n", objectName().toStdString().c_str(), _x);
-				xStart = _x;
-				update();
-			};
+	public slots:
+		void xStartChange(int _x){
+			if (_x<0){
+				return;
+			}
+			// printf("[%s] Ustawiam xStart na: %d\n", objectName().toStdString().c_str(), _x);
+			xStart = _x;
+			update();
+		};
 		void yStartChange(int _y){
 			if (_y<0){
 				return ;
