@@ -23,6 +23,8 @@
 #include <fftw3.h>
 
 // Standard library includes (alphabetically ordered, no duplicates)
+#include <array>
+#include <cassert>
 #include <cmath>
 #include <fstream>
 #include <iostream>
@@ -87,19 +89,86 @@ uint birdIdFromName(const std::string& name);
 
 template <class T>
 T minim(const T& a, const T& b);
+
 template <class T>
-void HammingWindow(T* in, T* out, int n);
+void HanningWindow(T* in, T* out, int n){
+	// Prevent buffer overflow - window size must not exceed maximum
+	assert(n > 0 && n <= 4096 && "Window size must be between 1 and 4096");
+
+	static std::array<T, 4096> tab;
+	static bool initialized = false;
+	static int cached_n = 0;
+
+	// Re-initialize if window size changes or first time
+	if (!initialized || cached_n != n) {
+		for (int j = 0; j < n; j++) {
+			tab[j] = static_cast<T>(0.50 - 0.50 * std::cos(2 * PI * j / n));
+		}
+		initialized = true;
+		cached_n = n;
+	}
+
+	// Apply pre-computed window
+	for (int j = 0; j < n; j++) {
+		out[j] = in[j] * tab[j];
+	}
+}
+
 template <class T>
-void HammingWindow(T* in, T* out, int n);
+void HammingWindow(T* in, T* out, int n){
+	// Prevent buffer overflow - window size must not exceed maximum
+	assert(n > 0 && n <= 4096 && "Window size must be between 1 and 4096");
+
+	static std::array<T, 4096> tab;
+	static bool initialized = false;
+	static int cached_n = 0;
+
+	// Re-initialize if window size changes or first time
+	if (!initialized || cached_n != n) {
+		for (int j = 0; j < n; j++) {
+			tab[j] = static_cast<T>(0.54 - 0.46 * std::cos(2 * PI * j / n));
+		}
+		initialized = true;
+		cached_n = n;
+	}
+
+	// Apply pre-computed window
+	for (int j = 0; j < n; j++) {
+		out[j] = in[j] * tab[j];
+	}
+}
+
 template <class T>
-void BlackmanWindow(T* in, T* out, int n);
+void BlackmanWindow(T* in, T* out, int n){
+	// Prevent buffer overflow - window size must not exceed maximum
+	assert(n > 0 && n <= 4096 && "Window size must be between 1 and 4096");
+
+	static std::array<T, 4096> tab;
+	static bool initialized = false;
+	static int cached_n = 0;
+
+	// Re-initialize if window size changes or first time
+	if (!initialized || cached_n != n) {
+		int n_1 = n - 1;
+		for (int j = 0; j < n; j++) {
+			tab[j] = static_cast<T>(0.42 - 0.5 * std::cos(2 * PI * j / n_1) + 0.08 * std::cos(4 * PI * j / n_1));
+		}
+		initialized = true;
+		cached_n = n;
+	}
+
+	// Apply pre-computed window
+	for (int j = 0; j < n; j++) {
+		out[j] = in[j] * tab[j];
+	}
+}
 
 struct SFrequencies {
 	double freq[COUNT_FREQ];
 	~SFrequencies();
 	void consume(SFrequencies& other);
-	double differ(SFrequencies& other);
-	SFrequencies(SFrequencies&);
+	double differ(const SFrequencies& other) const;
+	SFrequencies(const SFrequencies&);
 	SFrequencies();
 };
 
@@ -107,7 +176,7 @@ struct OrigFrequencies {
 	double freq[FFT_SIZE];
 	~OrigFrequencies();
 	OrigFrequencies();
-	OrigFrequencies(OrigFrequencies &);
+	OrigFrequencies(const OrigFrequencies &);
 	double minValue;
 	double maxValue;
 };
@@ -181,7 +250,7 @@ class CSample : public CSignal {
 		explicit CSample(const std::string& filename);
 		explicit CSample(SFrequencies*, uint freqcount, uint birdid, uint sampleid);
 		explicit CSample(double *, int n, uint sampleRate, uint id, uint start, uint end, uint bid);
-		explicit CSample(std::vector<double>&, int start, int n, uint sampleRate, uint id, uint start, uint end, uint bid);
+		explicit CSample(std::vector<double>&, int startS, int n, uint sampleRate, uint id, uint start, uint end, uint bid);
 		~CSample() = default;
 
 		uint getStartSampleNo() const {
@@ -249,7 +318,7 @@ inline double computePower(double frames[], int framesCount){
 }
 
 inline double powerTodB(double value){
-	return max(0.0, 10*log(value/10e-12)/log(10.0));
+	return std::max(0.0, 10*log(value/10e-12)/log(10.0));
 }
 
 int main_detect(int, char**);
