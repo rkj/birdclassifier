@@ -1,7 +1,7 @@
 /*
 	QTDetection, bird voice visualization and comaprison.
 	Copyright (C) 2006 Roman Kamyk.
-	 
+
 	This program is free software; you can redistribute it and/or
 	modify it under the terms of the GNU General Public License
 	as published by the Free Software Foundation; either version 2
@@ -17,10 +17,12 @@
 	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
+#ifndef _MAINWINDOW_HXX
+#define _MAINWINDOW_HXX
+
 #include "ui_MainWindow.h"
 #include <QFileDialog>
 #include <QMessageBox>
-#include <QSound>
 
 #include <vector>
 #include <exception>
@@ -47,8 +49,8 @@ class MainWindow : public QMainWindow, private Ui::MainWindow {
 	protected:
 
 	private:
-		vector<double> samples;
-		vector<double> fSamples;
+		std::vector<double> samples;
+		std::vector<double> fSamples;
 		int audio_BufferSize;
 
 	private slots:
@@ -71,9 +73,9 @@ class MainWindow : public QMainWindow, private Ui::MainWindow {
 		CSample* sample_tmp;
 		CFile * loadedFile;
 		RtAudio* audio;
-		vector<CSample*> learning;
-		vector<double> selectedFrames;
-		vector<CSpectColor*> colorerList;
+		std::vector<CSample*> learning;
+		std::vector<double> selectedFrames;
+		std::vector<CSpectColor*> colorerList;
 		ColorListModel* colorsModel;
 		void selectedCSample(CSample*);
 		void init();
@@ -81,3 +83,5 @@ class MainWindow : public QMainWindow, private Ui::MainWindow {
 		bool playing;
 		static int playRecordCallback(char *buffer, int bufferSize, void * data);
 };
+
+#endif // _MAINWINDOW_HXX

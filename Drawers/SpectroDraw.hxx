@@ -21,7 +21,6 @@
 #define _SPECTRODRAW_HXX
 
 #include "ui_SpectroDraw.h"
-#include <QtDesigner/QDesignerExportWidget>
 
 class SpectroDraw : public QWidget, private Ui::SpectroDraw {
 	Q_OBJECT

@@ -21,7 +21,6 @@
 #define _ENERGYDRAWWIDGET_HXX
 
 #include "ui_EnergyDraw.h"
-#include <QtDesigner/QDesignerExportWidget>
 #include <QGroupBox>
 
 class EnergyDrawWidget : public QWidget, private Ui::EnergyDrawWidget {

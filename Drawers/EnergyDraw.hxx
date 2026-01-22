@@ -31,8 +31,8 @@ class CEnergyDraw : public QLabel {
 	public:
 		static const int LEGEND_WIDTH = 50;
 		static const int LEGEND_HEIGHT = 20;
-		void setSignal(vector<double> &values);
-		void updateSignal(vector<double>& values);
+		void setSignal(std::vector<double> &values);
+		void updateSignal(std::vector<double>& values);
 		CEnergyDraw(){
 			init();
 		}
@@ -58,15 +58,15 @@ class CEnergyDraw : public QLabel {
 		void changeViewRegion(int, int);
 		void changeCutOff(int);
 	signals:
-		void selectedFragments(list<sRegion>&);
-		void selectedVisibleFragments(list<sRegion>&);
+		void selectedFragments(std::list<sRegion>&);
+		void selectedVisibleFragments(std::list<sRegion>&);
 
 	private:
 		void init();
-		vector<double> powers;
+		std::vector<double> powers;
 		sRegion viewRegion;
 		int cutOff;
-		list<sRegion> selection;
+		std::list<sRegion> selection;
 		int powerToY(double);
 		double yToPower(int);
 		bool changes;

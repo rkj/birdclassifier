@@ -19,6 +19,8 @@
 
 #include "SignalDraw.hxx"
 #include <QPainter>
+#include <QScrollBar>
+#include <QSlider>
 
 SignalDraw::SignalDraw(QWidget* parent) : QWidget (parent), Ui::SignalDraw(){
 	init();
@@ -27,9 +29,9 @@ SignalDraw::SignalDraw(QWidget* parent) : QWidget (parent), Ui::SignalDraw(){
 void SignalDraw::init(){
 	setupUi(this);
 
-	connect( drawingArea, SIGNAL(viewRegionChanged(int, int)), this, SLOT(changeViewRegion(int, int)) );
-	connect( positionSB, SIGNAL(valueChanged(int)), drawingArea, SLOT(changeViewRegionStart(int)) );
-	connect( verticalSlider, SIGNAL(valueChanged(int)), drawingArea, SLOT(setZoomY(int)) );
+	connect(drawingArea, &AudioDraw::viewRegionChanged, this, &SignalDraw::changeViewRegion);
+	connect(positionSB, &QScrollBar::valueChanged, drawingArea, &AudioDraw::changeViewRegionStart);
+	connect(verticalSlider, &QSlider::valueChanged, drawingArea, &AudioDraw::setZoomY);
 	verticalSlider->setValue(200);
 
 	samples = 0;
