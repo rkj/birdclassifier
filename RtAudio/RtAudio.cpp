@@ -3208,6 +3208,12 @@ void RtApiAlsa :: initialize(void)
 
   // Count cards and devices
   nDevices_ = 0;
+
+  // Add the "default" device manually to support PulseAudio/PipeWire
+  device.name = "default";
+  devices_.push_back(device);
+  nDevices_++;
+
   card = -1;
   snd_card_next(&card);
   while ( card >= 0 ) {
@@ -3270,6 +3276,37 @@ void RtApiAlsa :: probeDeviceInfo(RtApiDevice *info)
   snd_pcm_hw_params_alloca(&params);
   char name[64];
   char *card;
+
+  // Handle "default" device specially
+  if (info->name == "default") {
+    // Probe playback
+    if (snd_pcm_open(&handle, "default", SND_PCM_STREAM_PLAYBACK, SND_PCM_NONBLOCK) >= 0) {
+      info->maxOutputChannels = 2; // Default usually supports at least stereo
+      info->minOutputChannels = 1;
+      info->nativeFormats |= RTAUDIO_SINT16; // Standard support
+      snd_pcm_close(handle);
+    }
+    
+    // Probe capture
+    if (snd_pcm_open(&handle, "default", SND_PCM_STREAM_CAPTURE, SND_PCM_NONBLOCK) >= 0) {
+      info->maxInputChannels = 2;
+      info->minInputChannels = 1;
+      info->nativeFormats |= RTAUDIO_SINT16;
+      snd_pcm_close(handle);
+    }
+
+    if (info->maxOutputChannels > 0 && info->maxInputChannels > 0) {
+      info->hasDuplexSupport = true;
+      info->maxDuplexChannels = 2;
+      info->minDuplexChannels = 1;
+    }
+
+    // Assume standard sample rates for default device
+    info->sampleRates.push_back(44100);
+    info->sampleRates.push_back(48000);
+    info->probed = true;
+    return;
+  }
 
   // Open the control interface for this card.
   strncpy( name, info->name.c_str(), 64 );
