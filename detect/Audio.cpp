@@ -306,7 +306,16 @@ CAudio::~CAudio(){
 CFFT::CFFT(){
 	in = (double*)fftw_malloc(FFT_SIZE*sizeof(double));
 	out = (double*)fftw_malloc(FFT_SIZE*sizeof(double));
-	rplan = fftw_plan_r2r_1d(FFT_SIZE, in, out, FFTW_R2HC, (uint)FFTW_FORWARD); 
+	if (!in || !out) {
+		fprintf(stderr, "Error: Failed to allocate FFTW buffers\n");
+		exit(1);
+	}
+	// Use FFTW_ESTIMATE instead of incorrectly passing direction as flag
+	rplan = fftw_plan_r2r_1d(FFT_SIZE, in, out, FFTW_R2HC, FFTW_ESTIMATE);
+	if (!rplan) {
+		fprintf(stderr, "Error: Failed to create FFTW plan\n");
+		exit(1);
+	}
 }
 
 CFFT::~CFFT(){

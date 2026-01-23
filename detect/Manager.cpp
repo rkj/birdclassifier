@@ -46,6 +46,7 @@ CSample* CManager::readFile(){
 	const uint frontSamples = 300;
 	bool rollOver = false;
 	uint idx = 0;
+	bool found = false;
 	do {
 		for (uint j=0; j<delta; j++){
 			if (!currFile->readPossible()){
@@ -53,12 +54,15 @@ CSample* CManager::readFile(){
 			}
 			buffer[idx+j] = currFile->read();
 		}
+		if (computePower(buffer+idx, delta) > powerCutoff) {
+			found = true;
+		}
 		idx += delta;
 		if (idx >= BUFSIZE-delta){
 			rollOver = true;
 			idx = 0;
 		}
-	} while (computePower(buffer+idx-delta, delta) <= powerCutoff);
+	} while (!found);
 
 	uint pos = 0;
 	if (idx < frontSamples){
