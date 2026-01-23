@@ -1,6 +1,6 @@
 # Bird Species Classifier (BSC)
 
-[![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Version](https://img.shields.io/badge/version-0.83-green.svg)](https://github.com/yourusername/birdclassifier)
 
 > **Acoustic bird species recognition using pattern matching and nearest neighbor classification**
@@ -109,7 +109,7 @@ See [INSTALL.md](INSTALL.md) for detailed platform-specific instructions.
 ./bin/BSC -learning data/samples/ -crosstest
 ```
 
-See [USAGE](USAGE) for comprehensive parameter documentation.
+Run `./bin/BSC --help` for full parameter documentation.
 
 ---
 
@@ -291,7 +291,7 @@ Process files with parameters:
 ./bin/BSC -learning samples/ -nofilter recording.wav
 ```
 
-For complete parameter documentation, see [USAGE](USAGE).
+For complete parameter documentation, run `./bin/BSC --help`.
 
 ---
 
@@ -301,12 +301,10 @@ For complete parameter documentation, see [USAGE](USAGE).
 birdclassifier/
 ├── README.md                    # This file
 ├── INSTALL.md                   # Installation guide
-├── USAGE                        # Usage documentation
-├── TODO                         # Planned features
 ├── CODE_REVIEW.md              # Code review and analysis
 ├── ARCHITECTURE.md             # System architecture documentation
 ├── CONTRIBUTING.md             # Contribution guidelines
-├── COPYING                      # GPL v2 license
+├── LICENSE                      # MIT license
 ├── BirdSpeciesClassifier.pro   # Qt project configuration
 ├── Images.qrc                  # Qt resource file
 ├── .gitignore                  # Git ignore rules
@@ -352,11 +350,10 @@ birdclassifier/
 ## Documentation
 
 - **[INSTALL.md](INSTALL.md)** - Detailed installation instructions for all platforms
-- **[USAGE](USAGE)** - Comprehensive usage guide and parameter reference
 - **[ARCHITECTURE.md](ARCHITECTURE.md)** - System design and architecture documentation
 - **[CODE_REVIEW.md](CODE_REVIEW.md)** - Code quality analysis and recommendations
 - **[CONTRIBUTING.md](CONTRIBUTING.md)** - Guidelines for contributors
-- **[TODO](TODO)** - Planned features and improvements
+- **`--help`** - Run `./bin/BSC --help` for command-line parameter reference
 
 ---
 
@@ -372,21 +369,11 @@ Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for gu
 
 ## License
 
-This project is licensed under the **GNU General Public License v2.0** - see the [COPYING](COPYING) file for details.
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 
 ```
-Bird Species Classifier (BSC)
-Copyright (C) 2006 Roman Kamyk
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
+MIT License
+Copyright (c) 2006 Roman Kamyk
 ```
 
 ---
@@ -430,7 +417,7 @@ If you use this software in academic research, please cite:
 
 For issues, questions, or suggestions:
 1. Check existing [Issues](https://github.com/yourusername/birdclassifier/issues)
-2. Review [USAGE](USAGE) documentation
+2. Run `./bin/BSC --help` for usage documentation
 3. Create a new issue with detailed information
 
 ---

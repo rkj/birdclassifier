@@ -390,14 +390,38 @@ void analyzeDarlowo(const char* filename, vector<CSample*>& learning){
 }
 
 void print_help(char* name){
-	printf("Too few parameters. Usage:\n");
-	printf("%s [-nofilter] [-snr value] [-cutoff value] [-powerCutoff value] [-hopeTime seconds] [-verbose] [-nounknown] [-save prefix] [-saveLearning prefix] [-learning dirName] [-learnFile fileName] [-crosstest | filename1 filename2...]\n", name);
+	printf("Bird Species Classifier (BSC) - Acoustic bird species recognition\n\n");
+	printf("Usage: %s [OPTIONS] [audio_files...]\n\n", name);
+	printf("When run without arguments, starts in GUI mode.\n");
+	printf("When audio files are provided, runs in batch processing mode.\n\n");
+	printf("Options:\n");
+	printf("  -h, --help            Show this help message\n");
+	printf("  -v, --version         Show version information\n");
+	printf("  -learning <dir>       Load learning set from directory (default: samples/)\n");
+	printf("  -learnFile <file>     Load learning set from a single file\n");
+	printf("  -verbose              Enable verbose output\n");
+	printf("  -nofilter             Disable bandpass filter (2-14 kHz)\n");
+	printf("  -nounknown            Don't report unrecognized voices\n");
+	printf("  -crosstest            Perform 10-fold cross-validation on learning set\n\n");
+	printf("Tuning parameters:\n");
+	printf("  -snr <value>          Signal-to-Noise Ratio threshold (default: 3.0)\n");
+	printf("  -cutoff <value>       Difference cutoff threshold (default: 0.255)\n");
+	printf("  -powerCutoff <value>  Signal power threshold (default: 1e-04)\n");
+	printf("  -hopeTime <seconds>   Hop time for signal segmentation (default: 0)\n\n");
+	printf("Output options:\n");
+	printf("  -save <prefix>        Save analyzed samples with given prefix\n");
+	printf("  -saveLearning <pref>  Save learning samples with given prefix\n\n");
+	printf("Examples:\n");
+	printf("  %s                                    # Start GUI\n", name);
+	printf("  %s -learning data/ bird.wav          # Analyze a file\n", name);
+	printf("  %s -learning data/ -verbose *.wav    # Batch with verbose\n", name);
+	printf("  %s -learning data/ -crosstest        # Cross-validation\n", name);
 }
 
 void print_version(){
-	printf("QTDetection version 0.9?\n");
-	printf("Author: Roman Kamyk.\n");
-	printf("Licence: GPL. See COPYING.\n");
+	printf("Bird Species Classifier (BSC) version 0.83\n");
+	printf("Author: Roman Kamyk <rkj@go2.pl>\n");
+	printf("License: MIT. See LICENSE file.\n");
 }
 int main_detect(int argc, char *argv[]){
 	if (argc == 1){

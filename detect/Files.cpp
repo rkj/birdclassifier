@@ -19,6 +19,7 @@
 
 #include "Files.hxx"
 #include <climits>
+#include <vector>
 
 using namespace std;
 
@@ -69,145 +70,45 @@ bool CMemoryFile::readPossible(){
 }
 
 
-CMP3File::CMP3File(const string& filename) : CFile(filename){
-	size = -1;
-	InitMP3(&mp3data);
-	file = fopen(filename.c_str(), "rb");
-	if (file == NULL){
-		fprintf(stderr, "Unable to open file: %s\n", filename.c_str());
-		throw exception();
-	}
-	sampleRate = 44100;
-	framesCount = 1;
-	// while(1) {
-	// 	int len = readFile();
-	// 	if(len <= 0)
-	// 		break;
-	// 	while(ret == MP3_OK) {
-	// 		int i;
-	// 		framesCount += size/4;
-	// 		ret = decodeMP3(&mp3data, NULL, 0, (char*)decodeBuffer, sizeof(short)*BUF_SIZE, &size);
-	// 	}
-	// }
-	fclose(file);
-	ExitMP3(&mp3data);
-
-	memset(&mp3data, 0, sizeof(mp3data));
-	readSamples = 0;
-	InitMP3(&mp3data);
-	file = fopen(filename.c_str(), "rb");
-	if (readFile() <= 0){
-		throw exception();
-	}
-	fflush(stderr);
-	channels = 2;
-	endOfFile = false;
-	bufFilled = 0;
-	bufPos = BUF_SIZE;
-}
-
-CMP3File::~CMP3File(){
-	fclose(file);
-}
-
-int CMP3File::readFile(){
-	int len = fread(fileBuffer, sizeof(unsigned char), BUF_SIZE, file);
-	if (len <= 0){
-		for (unsigned int i=0; i<BUF_SIZE; i++){
-			buffer[i] = 0;
-		}
-		return len;
-	}
-	if (len < (int)BUF_SIZE){
-		endOfFile = true;
-	}
-	needToReadFile = false;
-	ret = decodeMP3(&mp3data, fileBuffer, len, (char*)decodeBuffer, sizeof(short)*BUF_SIZE, &size);
-	return len;
-}
-
-void CMP3File::fillBuffer() {
-//	printf("****FillBuffer (BufFilled: %d)\n", bufFilled);
-	unsigned int bufFill = 0;
-	if (bufFilled > 0){
-		for (unsigned int i=BUF_SIZE; i<bufFilled; i++){
-			buffer[i-BUF_SIZE] = 1.0*buffer[i]/SHRT_MAX;
-			++bufFill;
-		}
-		bufFilled = 0;
-	}
-	while(true) {
-		while (true) {
-			if (bufFill >= BUF_SIZE){
-				bufFilled = bufFill;
-				framesCount = BUF_SIZE+1;
-				return;
-			}
-			if (needToReadFile){
-				int len = readFile();
-				if (len <= 0){
-					framesCount = bufFill;
-					return;
-				}
-				// ret = decodeMP3(&mp3data, fileBuffer, len, (char*)decodeBuffer, sizeof(short)*BUF_SIZE, &size);
-			} else {
-				ret = decodeMP3(&mp3data, NULL, 0, (char*)decodeBuffer, sizeof(short)*BUF_SIZE, &size);
-			}
-			if (ret != MP3_OK){
-				break;
-			}
-			//printf("Size: %d, read: %lld, bufFill: %d, bufFilled: %d\n", size, sampleNumber(), bufFill, bufFilled);
-			if (channels == 2){
-				for (int i=0; i<size/4; i++){
-					buffer[bufFill++] = 1.0*decodeBuffer[2*i]/SHRT_MAX;
-				}
-			} else if (channels == 1) {
-				for (int i=0; i<size/2; i++){
-					buffer[bufFill++] = 1.0*decodeBuffer[i]/SHRT_MAX;
-				}
-			}
-		}
-		if (endOfFile){
-			framesCount = bufFill;
-		} 
-		needToReadFile = true;
-	}
-}
-
 CWaveFile::CWaveFile(const string& filename) : CFile(filename){
 	sf_info.format = 0;
 	file = sf_open(filename.c_str(), SFM_READ, &sf_info);
+	if (!file) {
+		fprintf(stderr, "Error opening file '%s': %s\n", filename.c_str(), sf_strerror(NULL));
+		throw exception();
+	}
 	framesCount = sf_info.frames;
 	sampleRate = sf_info.samplerate;
 	channels = sf_info.channels;
 }
 
 CWaveFile::~CWaveFile(){
-	sf_close(file);
+	if (file)
+		sf_close(file);
 }
 
 void CWaveFile::fillBuffer(){
-	if (sampleRate == 44100 && channels == 1){
-		sf_read_double(file, buffer, BUF_SIZE);
-	} else if (sampleRate == 44100 && channels == 2){
-		static double buf[2*BUF_SIZE];
-		sf_read_double(file, buf, 2*BUF_SIZE);
-		for (uint i=0; i<BUF_SIZE; i++){
-			buffer[i] = buf[2*i];
-		}
+	if (channels == 1){
+		sf_count_t read = sf_read_double(file, buffer, BUF_SIZE);
+		// Zero pad if we hit EOF
+		for (int i = read; i < BUF_SIZE; ++i) buffer[i] = 0.0;
 	} else {
-		fprintf(stderr, "SampleRate: %d, channels: %d\n", sampleRate, channels);
-		throw exception();
+		// General multi-channel handling (take first channel)
+		std::vector<double> multiBuf(channels * BUF_SIZE);
+		sf_count_t itemsRead = sf_read_double(file, multiBuf.data(), channels * BUF_SIZE);
+		sf_count_t framesRead = itemsRead / channels;
+
+		for (int i=0; i<framesRead; i++){
+			buffer[i] = multiBuf[i*channels];
+		}
+		// Zero pad
+		for (int i = framesRead; i < BUF_SIZE; ++i) buffer[i] = 0.0;
 	}
 }
 
 CFile* CFileFactory::createCFile(const string& filename){
-	if (filename.rfind(".mp3") != string::npos || filename.rfind(".MP3") != string::npos){
-		return new CMP3File(filename);
-	}
-	if (filename.rfind(".wav") != string::npos || filename.rfind(".WAV") != string::npos){
-		return new CWaveFile(filename);
-	}
-	return NULL;
+	// With libsndfile 1.2.0+, MP3 and other formats are supported transparently.
+	// We use CWaveFile for everything.
+	return new CWaveFile(filename);
 }
 

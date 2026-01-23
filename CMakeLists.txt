@@ -58,12 +58,6 @@ set(CORE_SOURCES
     detect/Filter.cpp
     detect/Manager.cpp
     RtAudio/RtAudio.cpp
-    mpglib/common.c
-    mpglib/dct64_i386.c
-    mpglib/decode_i386.c
-    mpglib/interface.c
-    mpglib/layer3.c
-    mpglib/tabinit.c
 )
 
 set(CORE_HEADERS
@@ -74,9 +68,6 @@ set(CORE_HEADERS
     detect/Manager.hxx
     RtAudio/RtAudio.h
     RtAudio/RtError.h
-    mpglib/huffman.h
-    mpglib/mpg123.h
-    mpglib/mpglib.h
 )
 
 # Create core library (shared between GUI and tests)
@@ -86,7 +77,6 @@ target_include_directories(bsc_core PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/detect
     ${CMAKE_CURRENT_SOURCE_DIR}/Drawers
-    ${CMAKE_CURRENT_SOURCE_DIR}/mpglib
     ${CMAKE_CURRENT_SOURCE_DIR}/RtAudio
     ${SNDFILE_INCLUDE_DIRS}
     ${FFTW3_INCLUDE_DIRS}

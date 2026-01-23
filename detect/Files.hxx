@@ -24,8 +24,6 @@
 #include <string>
 #include <sndfile.h>
 #include <exception>
-#include "mpglib/mpglib.h"
-#include "mpglib/mpg123.h"
 
 // Note: Do not use "using namespace std" in headers
 // Use std:: prefix explicitly to avoid namespace pollution
@@ -75,25 +73,6 @@ class CMemoryFile : public CFile {
 		}
 	private:
 		double * data;
-};
-
-class CMP3File : public CFile {
-	public:
-		CMP3File(const std::string& filename);
-		~CMP3File();
-	protected:
-		void fillBuffer();
-	private:
-		char fileBuffer[BUF_SIZE];
-		bool needToReadFile;
-		bool endOfFile;
-		unsigned int bufFilled;
-		short decodeBuffer[BUF_SIZE];
-		mpstr mp3data;
-		int size;
-		int ret;
-		int readFile();
-		FILE* file;
 };
 
 class CWaveFile : public CFile {
