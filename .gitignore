@@ -92,6 +92,11 @@ valgrind-out.txt
 googletest/
 _deps/
 
+# Bazel
+bazel-*
+tools/bazelisk
+tools/bazelisk.exe
+
 # Temporary files
 *.tmp
 *.bak

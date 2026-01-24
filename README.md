@@ -161,10 +161,18 @@ The application combines digital signal processing, pattern recognition, and int
 
 #### Build Tools
 - **gcc/g++** - C++ compiler with C++98 support minimum
+- **Bazel/Bazelisk** - Preferred build and test runner
 - **qmake** - Qt build tool
 - **make** - Build automation
 
 ---
+
+### Bazel Build (Preferred)
+
+```bash
+./tools/bazelisk build //:bsc_cli
+./tools/bazelisk test //tests:audio_tests
+```
 
 ## Installation
 

@@ -1,0 +1,12 @@
+cc_test(
+    name = "audio_tests",
+    srcs = [
+        "test_audio.cpp",
+        "test_main.cpp",
+    ],
+    copts = ["-std=c++17"],
+    deps = [
+        "//:bsc_core",
+        "@com_google_googletest//:gtest",
+    ],
+)

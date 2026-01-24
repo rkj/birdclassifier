@@ -11,10 +11,11 @@ Complete installation instructions for Bird Species Classifier (BSC) on Linux, m
 3. [macOS Installation](#macos-installation)
 4. [Windows Installation](#windows-installation)
 5. [Build Configuration](#build-configuration)
-6. [CMake Build (Recommended)](#cmake-build-recommended)
-7. [Running Tests](#running-tests)
-8. [Troubleshooting](#troubleshooting)
-9. [Verification](#verification)
+6. [Bazel Build (Preferred)](#bazel-build-preferred)
+7. [CMake Build (Legacy)](#cmake-build-legacy)
+8. [Running Tests](#running-tests)
+9. [Troubleshooting](#troubleshooting)
+10. [Verification](#verification)
 
 ---
 
@@ -32,28 +33,35 @@ Choose your platform:
 
 ---
 
-## Vcpkg (All Platforms)
+## Bazel Build (Preferred)
 
-If you want a single dependency manager across platforms, use the `vcpkg.json` manifest in this repo.
+The Bazel build targets the CLI and unit tests for deterministic builds. The Qt GUI
+remains supported via CMake while Bazel Qt integration is added.
 
-```bash
-# From your vcpkg clone
-./vcpkg/bootstrap-vcpkg.sh
+### Install Bazel
 
-# From this repo (uses vcpkg.json)
-vcpkg install
-
-# Configure with vcpkg toolchain
-cmake --preset vcpkg
-# Or for GUI build
-cmake --preset vcpkg-gui
-```
-
-Set `VCPKG_ROOT` to your vcpkg clone so presets can find the toolchain:
+Use Bazelisk (recommended) or a system Bazel package.
 
 ```bash
-export VCPKG_ROOT=/path/to/vcpkg
+# From repo root
+mkdir -p tools
+curl -L https://github.com/bazelbuild/bazelisk/releases/download/v1.19.0/bazelisk-linux-amd64 -o tools/bazelisk
+chmod +x tools/bazelisk
 ```
+
+### Build CLI and Tests
+
+```bash
+./tools/bazelisk build //:bsc_cli
+./tools/bazelisk test //tests:audio_tests
+```
+
+---
+
+## CMake Build (Legacy)
+
+CMake builds remain supported for the GUI and platform-specific workflows. See the
+platform sections below for details.
 
 ---
 
@@ -251,10 +259,7 @@ make -j$(sysctl -n hw.ncpu)
 
 3. **Install Dependencies**:
    - **libsndfile**, **fftw3**, **rtaudio**, and **Qt6** are required.
-   - Recommended: Use [vcpkg](https://github.com/microsoft/vcpkg) to manage dependencies.
-     ```powershell
-     .\vcpkg install libsndfile fftw3 rtaudio qtbase qtcharts --triplet x64-windows
-     ```
+   - Install these via your preferred package manager or prebuilt binaries.
 
 ### Build using Command Line
 

@@ -17,6 +17,7 @@ bd sync               # Sync with git
 - Always take the first item from `bd ready` without asking.
 - For each bead: claim it, fix it, run tests/quality gates, commit, then move to the next bead.
 - If human input is required, create a separate bead for that request, add a comment, and block dependent tasks on it while continuing other work.
+- Use Bazel for builds and verification; do not introduce or recommend vcpkg.
 
 ## Landing the Plane (Session Completion)
 

@@ -1,0 +1,33 @@
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "bsc_core",
+    srcs = [
+        "detect/Audio.cpp",
+        "detect/detect.cpp",
+        "detect/Files.cpp",
+        "detect/Filter.cpp",
+        "detect/Manager.cpp",
+    ],
+    hdrs = [
+        "detect/Audio.hxx",
+        "detect/detect.hxx",
+        "detect/Files.hxx",
+        "detect/Filter.hxx",
+        "detect/Manager.hxx",
+    ],
+    copts = ["-std=c++17"],
+    linkopts = [
+        "-lsndfile",
+        "-lfftw3",
+        "-lrtaudio",
+        "-lpthread",
+        "-lm",
+    ],
+)
+
+cc_binary(
+    name = "bsc_cli",
+    srcs = ["bazel/cli_main.cpp"],
+    deps = [":bsc_core"],
+)
