@@ -283,7 +283,8 @@ void categorize2(vector<CSample*> samples, double delta = 1.25){
 	// 	sprintf(buf, "categories/%i.freq", i);
 	// 	categories[i]->saveFrequencies(buf);
 	// }
-	test(samples, categories);
+	auto cats = toRawSamples(categories);
+	test(samples, cats);
 }
 
 CSample * test(CSample * tested, vector<CSample*>& learning, bool print){

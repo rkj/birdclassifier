@@ -26,6 +26,23 @@ std::unique_ptr<CSample> makeSample(uint birdId, uint sampleId, const std::strin
     sample->setName(name);
     return sample;
 }
+
+struct SnrMinGuard {
+    explicit SnrMinGuard(double value)
+        : previousConfig(AudioConfig::getInstance().snrMin),
+          previousGlobal(SNR_MIN) {
+        AudioConfig::getInstance().snrMin = value;
+        SNR_MIN = value;
+    }
+
+    ~SnrMinGuard() {
+        AudioConfig::getInstance().snrMin = previousConfig;
+        SNR_MIN = previousGlobal;
+    }
+
+    double previousConfig;
+    double previousGlobal;
+};
 }
 
 // Test fixture for audio tests
@@ -298,6 +315,7 @@ TEST_F(AudioTest, CManagerResetQueueClearsFiles) {
 }
 
 TEST_F(AudioTest, CManagerExtractsSampleFromMemoryFile) {
+    SnrMinGuard snrGuard(0.0);
     CFFT fft;
     CManager manager(fft);
     manager.setPowerCutoff(0.0);
