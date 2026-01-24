@@ -1,0 +1,10 @@
+{
+  "name": "birdclassifier",
+  "version-string": "0.83",
+  "dependencies": [
+    "libsndfile",
+    "fftw3",
+    "rtaudio",
+    "qtbase"
+  ]
+}

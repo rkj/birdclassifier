@@ -32,6 +32,31 @@ Choose your platform:
 
 ---
 
+## Vcpkg (All Platforms)
+
+If you want a single dependency manager across platforms, use the `vcpkg.json` manifest in this repo.
+
+```bash
+# From your vcpkg clone
+./vcpkg/bootstrap-vcpkg.sh
+
+# From this repo (uses vcpkg.json)
+vcpkg install
+
+# Configure with vcpkg toolchain
+cmake --preset vcpkg
+# Or for GUI build
+cmake --preset vcpkg-gui
+```
+
+Set `VCPKG_ROOT` to your vcpkg clone so presets can find the toolchain:
+
+```bash
+export VCPKG_ROOT=/path/to/vcpkg
+```
+
+---
+
 ## Linux Installation
 
 ### Ubuntu / Debian
@@ -222,10 +247,10 @@ make -j$(sysctl -n hw.ncpu)
    - Install CMake 3.21 or later from [cmake.org](https://cmake.org/download/).
 
 3. **Install Dependencies**:
-   - **libsndfile**, **fftw3**, and **rtaudio** are required.
+   - **libsndfile**, **fftw3**, **rtaudio**, and **Qt6** are required.
    - Recommended: Use [vcpkg](https://github.com/microsoft/vcpkg) to manage dependencies.
      ```powershell
-     .\vcpkg install libsndfile fftw3 rtaudio --triplet x64-windows
+     .\vcpkg install libsndfile fftw3 rtaudio qtbase --triplet x64-windows
      ```
 
 ### Build using Command Line
