@@ -25,7 +25,7 @@ using namespace std;
 
 void AudioDraw::mousePressEvent(QMouseEvent *event){
 	if (selectable && event->button() == Qt::LeftButton && !selecting && size > 0) {
-		selection.start = event->x();
+		selection.start = (int)event->position().x();
 		selection.end = -1;
 		selecting = true;
 		update();
@@ -34,9 +34,9 @@ void AudioDraw::mousePressEvent(QMouseEvent *event){
 
 void AudioDraw::mouseMoveEvent(QMouseEvent *event){
 	if (selecting){
-		int low = min(event->x(), min(selection.start, selection.end)) - 1;
-		int high = max(event->x(), max(selection.start, selection.end)) + 1;
-		selection.end = event->x();
+		int low = min((int)event->position().x(), min(selection.start, selection.end)) - 1;
+		int high = max((int)event->position().x(), max(selection.start, selection.end)) + 1;
+		selection.end = (int)event->position().x();
 		update(low, 0, high-low, height());
 		//		update();
 	}
@@ -44,7 +44,7 @@ void AudioDraw::mouseMoveEvent(QMouseEvent *event){
 
 void AudioDraw::mouseReleaseEvent(QMouseEvent *event){
 	if (event->button() == Qt::LeftButton && selecting) {
-		selection.end = event->x();
+		selection.end = (int)event->position().x();
 		if (selection.start > selection.end){
 			swap(selection.start, selection.end);
 		}
@@ -58,7 +58,7 @@ void AudioDraw::mouseReleaseEvent(QMouseEvent *event){
 		}
 	} else if (event->button() == Qt::LeftButton){
 		// printf("Emitting sample selected on pos: %d (X: = %d)\n", panelToFrame(event->x()), event->x());
-		sRegion reg = findSample(panelToFrame(event->x()));
+		sRegion reg = findSample(panelToFrame((int)event->position().x()));
 		emit samplesSelected(reg.start, reg.end);
 	} 
 	if (event->button() == Qt::MiddleButton && selection.start != selection.end){

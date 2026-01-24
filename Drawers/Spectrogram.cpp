@@ -60,7 +60,7 @@ void CSpectrogram::paintEvent(QPaintEvent *event){
 		for (uint i=0; i<=maxFreq*44100/FFT_SIZE/2000; i++){
 			int y = maxFreq - FFT_SIZE * i * 2000 / 44100 - 1;
 			paint.drawLine(LEGEND_WIDTH-2, y - yStart, LEGEND_WIDTH-12, y - yStart);
-			char buf[6];
+			char buf[32];
 			sprintf(buf, "%d", i*2000);
 			paint.drawText(2, y-7 - yStart, 40, 20, Qt::AlignRight, buf);
 		}
@@ -91,7 +91,7 @@ void CSpectrogram::paintEvent(QPaintEvent *event){
 		for (uint i=0; i<=maxFreq*44100/FFT_SIZE/2000; i++){
 			int y = maxFreq - FFT_SIZE * i * 2000 / 44100 - 1;
 			paint.drawLine(LEGEND_WIDTH-2, y - yStart, LEGEND_WIDTH-12, y - yStart);
-			char buf[6];
+			char buf[32];
 			sprintf(buf, "%d", i*2000+FIRST_FREQ*44100/FFT_SIZE);
 			paint.drawText(0, y-7 - yStart, LEGEND_WIDTH-13, 20, Qt::AlignRight, buf);
 		}

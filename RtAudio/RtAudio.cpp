@@ -382,7 +382,7 @@ RtAudioDeviceInfo RtApi :: getDeviceInfo( int device )
   return info;
 }
 
-char * const RtApi :: getStreamBuffer(void)
+char * RtApi :: getStreamBuffer(void)
 {
   verifyStream();
   return stream_.userBuffer;
@@ -4185,11 +4185,11 @@ void RtApiAlsa :: tickStream()
 
     // Write samples to device in interleaved/non-interleaved format.
     if (stream_.deInterleave[0]) {
-      void *bufs[channels];
+      std::vector<void*> bufs(channels);
       size_t offset = stream_.bufferSize * formatBytes(format);
       for (int i=0; i<channels; i++)
         bufs[i] = (void *) (buffer + (i * offset));
-      err = snd_pcm_writen(handle[0], bufs, stream_.bufferSize);
+      err = snd_pcm_writen(handle[0], bufs.data(), stream_.bufferSize);
     }
     else
       err = snd_pcm_writei(handle[0], buffer, stream_.bufferSize);
@@ -4242,11 +4242,11 @@ void RtApiAlsa :: tickStream()
 
     // Read samples from device in interleaved/non-interleaved format.
     if (stream_.deInterleave[1]) {
-      void *bufs[channels];
+      std::vector<void*> bufs(channels);
       size_t offset = stream_.bufferSize * formatBytes(format);
       for (int i=0; i<channels; i++)
         bufs[i] = (void *) (buffer + (i * offset));
-      err = snd_pcm_readn(handle[1], bufs, stream_.bufferSize);
+      err = snd_pcm_readn(handle[1], bufs.data(), stream_.bufferSize);
     }
     else
       err = snd_pcm_readi(handle[1], buffer, stream_.bufferSize);
@@ -8174,8 +8174,8 @@ void RtApi :: convertStreamBuffer( StreamMode mode )
 
 void RtApi :: byteSwapBuffer( char *buffer, int samples, RtAudioFormat format )
 {
-  register char val;
-  register char *ptr;
+  char val;
+  char *ptr;
 
   ptr = buffer;
   if (format == RTAUDIO_SINT16) {

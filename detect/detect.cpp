@@ -46,7 +46,7 @@ void crossTest(vector<CSample*> &samples, uint split = 10){
 	map<uint, map<uint, int> > mismatch;
 	map<uint, int> match;
 	map<uint, int> count;
-	vector<CSample*> ns[split];
+	vector<vector<CSample*>> ns(split);
 	map<CSample*, int> determinant;
 	for (uint i=0; i<samples.size(); i++){
 		ns[i%split].push_back(samples[i]);		
@@ -56,9 +56,7 @@ void crossTest(vector<CSample*> &samples, uint split = 10){
 	for (uint i=0; i<split; i++){
 		for (uint j=0; j<ns[i].size(); j++){
 			double diff = DOUBLE_BIG;
-			double secondValue;
 			CSample* won;
-			CSample* second;
 			ile++;
 			for (uint k=0; k<split; k++){
 				if (k!=i){
@@ -73,10 +71,6 @@ void crossTest(vector<CSample*> &samples, uint split = 10){
 						fprintf(stderr, "%s-%s: %f\n", ns[i][j]->getName().c_str(), ns[k][l]->getName().c_str(), tmp);
 #endif
 						if (tmp < diff){
-							if (ns[i][j]->getName() != ns[k][l]->getName()){
-								secondValue = diff;
-								second = ns[k][l];
-							}
 							diff = tmp;
 							won = ns[k][l];
 						}
@@ -227,7 +221,7 @@ vector<CSample*>* categorize(vector<CSample*>& samples, double delta = 1.25){
 			// }
 		}
 	}
-	printf("Made %d categories with %d errors\n", categories.size(), blad);
+	printf("Made %d categories with %d errors\n", (int)categories.size(), blad);
 	// char buf[100];
 	// for (uint i=0; i<categories.size(); i++){
 	// 	sprintf(buf, "categories/%i.wav", i);
@@ -272,7 +266,7 @@ void categorize2(vector<CSample*> samples, double delta = 1.25){
 			// }
 		}
 	}
-	printf("Made %d categories with %d errors\n", categories.size(), blad);
+	printf("Made %d categories with %d errors\n", (int)categories.size(), blad);
 	// char buf[100];
 	// for (uint i=0; i<categories.size(); i++){
 	// 	sprintf(buf, "categories/%i.wav", i);
@@ -359,7 +353,7 @@ vector<CSample*> readLearning(const char* dirName
 		}
 	}
 	if (verbose){
-		printf("\n%d samples in learning set\n", samples.size());
+		printf("\n%d samples in learning set\n", (int)samples.size());
 	}
 	return samples;
 }
@@ -430,7 +424,7 @@ int main_detect(int argc, char *argv[]){
 	}
 	char * saveLearning = NULL;
 	char * save = NULL;
-	char * dirName = "samples/";
+	const char * dirName = "samples/";
 	char * learnFile = NULL;
 	vector<char*> filenames;
 	for (int i = 1; i<argc; ++i){
@@ -528,7 +522,7 @@ int main_detect(int argc, char *argv[]){
 			cm.setSavePrefix(save);
 		}
 		if (verbose) {
-			printf("Got %d files to analyze\n", filenames.size());
+			printf("Got %d files to analyze\n", (int)filenames.size());
 		}
 		for (vector<char*>::iterator it = filenames.begin(); it != filenames.end(); ++it){
 			analyzeDarlowo(*it, learning);

@@ -553,22 +553,22 @@ vector<CSample*> readLearningFromFile(const char* filename){
 	return learn;
 }
 
-char* birdLatinNameFromId(uint id){
-	static char *names[] = {"Unknown", "Parus Major", "Parus caeruleus", "Regulus regulus", "Erithacus rubecula"};
+const char* birdLatinNameFromId(uint id){
+	static const char *names[] = {"Unknown", "Parus Major", "Parus caeruleus", "Regulus regulus", "Erithacus rubecula"};
 	if (id > 4)
 		id = 0;
 	return names[id];
 }
 
-char* birdShortNameFromId(uint id){
-	static char *names[] = {"UNKN", "BOGA", "RUDZ", "MYSI", "MODR"};
+const char* birdShortNameFromId(uint id){
+	static const char *names[] = {"UNKN", "BOGA", "RUDZ", "MYSI", "MODR"};
 	if (id > 4)
 		id = 0;
 	return names[id];
 }
 
-char* birdPolishNameFromId(uint id){
-	static char *names[] = {"Nieznany", "Bogatka", "Rudzik", "Mysikrolik", "Modraszka"};
+const char* birdPolishNameFromId(uint id){
+	static const char *names[] = {"Nieznany", "Bogatka", "Rudzik", "Mysikrolik", "Modraszka"};
 	if (id > 4)
 		id = 0;
 	return names[id];

@@ -209,14 +209,14 @@ TEST_F(AudioTest, SFrequenciesCopyConstruction) {
     SFrequencies freq1;
 
     // Initialize with some data
-    for (int i = 0; i < COUNT_FREQ; i++) {
+    for (uint i = 0; i < COUNT_FREQ; i++) {
         freq1.freq[i] = i * 0.1;
     }
 
     SFrequencies freq2(freq1);
 
     // Should have copied data
-    for (int i = 0; i < COUNT_FREQ; i++) {
+    for (uint i = 0; i < COUNT_FREQ; i++) {
         EXPECT_DOUBLE_EQ(freq2.freq[i], freq1.freq[i])
             << "Copy failed at index " << i;
     }
@@ -226,7 +226,7 @@ TEST_F(AudioTest, SFrequenciesDiffer_IdenticalShouldBeZero) {
     SFrequencies freq1, freq2;
 
     // Initialize with same data
-    for (int i = 0; i < COUNT_FREQ; i++) {
+    for (uint i = 0; i < COUNT_FREQ; i++) {
         freq1.freq[i] = i * 0.1;
         freq2.freq[i] = i * 0.1;
     }
@@ -241,7 +241,7 @@ TEST_F(AudioTest, SFrequenciesDiffer_DifferentShouldBeNonZero) {
     SFrequencies freq1, freq2;
 
     // Initialize with different data
-    for (int i = 0; i < COUNT_FREQ; i++) {
+    for (uint i = 0; i < COUNT_FREQ; i++) {
         freq1.freq[i] = 0.5;
         freq2.freq[i] = 0.6;
     }
@@ -255,7 +255,7 @@ TEST_F(AudioTest, SFrequenciesDiffer_DifferentShouldBeNonZero) {
 TEST_F(AudioTest, SFrequenciesDiffer_ShouldBeSymmetric) {
     SFrequencies freq1, freq2;
 
-    for (int i = 0; i < COUNT_FREQ; i++) {
+    for (uint i = 0; i < COUNT_FREQ; i++) {
         freq1.freq[i] = i * 0.05;
         freq2.freq[i] = i * 0.07;
     }
@@ -564,7 +564,7 @@ TEST_F(AudioTest, GetterConstCorrectness) {
     // This wouldn't compile if getters weren't properly marked const
 
     SFrequencies freq;
-    for (int i = 0; i < COUNT_FREQ; i++) {
+    for (uint i = 0; i < COUNT_FREQ; i++) {
         freq.freq[i] = i * 0.1;
     }
 
@@ -579,7 +579,7 @@ TEST_F(AudioTest, SFrequenciesCopyAndCompare) {
     SFrequencies freq1, freq2;
 
     // Initialize with test data
-    for (int i = 0; i < COUNT_FREQ; i++) {
+    for (uint i = 0; i < COUNT_FREQ; i++) {
         freq1.freq[i] = i * 0.05;
         freq2.freq[i] = i * 0.05;
     }

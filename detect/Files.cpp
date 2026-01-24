@@ -91,7 +91,7 @@ void CWaveFile::fillBuffer(){
 	if (channels == 1){
 		sf_count_t read = sf_read_double(file, buffer, BUF_SIZE);
 		// Zero pad if we hit EOF
-		for (int i = read; i < BUF_SIZE; ++i) buffer[i] = 0.0;
+		for (int i = read; i < (int)BUF_SIZE; ++i) buffer[i] = 0.0;
 	} else {
 		// General multi-channel handling (take first channel)
 		std::vector<double> multiBuf(channels * BUF_SIZE);
@@ -102,7 +102,7 @@ void CWaveFile::fillBuffer(){
 			buffer[i] = multiBuf[i*channels];
 		}
 		// Zero pad
-		for (int i = framesRead; i < BUF_SIZE; ++i) buffer[i] = 0.0;
+		for (int i = framesRead; i < (int)BUF_SIZE; ++i) buffer[i] = 0.0;
 	}
 }
 

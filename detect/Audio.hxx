@@ -82,9 +82,9 @@ public:
 // Kept for backward compatibility with existing code
 extern double SNR_MIN;
 
-char* birdPolishNameFromId(uint id);
-char* birdLatinNameFromId(uint id);
-char* birdShortNameFromId(uint id);
+const char* birdPolishNameFromId(uint id);
+const char* birdLatinNameFromId(uint id);
+const char* birdShortNameFromId(uint id);
 uint birdIdFromName(const std::string& name);
 
 template <class T>

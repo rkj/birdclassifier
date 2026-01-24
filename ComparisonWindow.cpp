@@ -40,12 +40,12 @@ ComparisonWindow::ComparisonWindow(QWidget *parent, CSample* sample, vector<CSam
 	myVBox->setContentsMargins(1, 1, 1, 1);
 	myVBox->setObjectName(QString::fromUtf8("myVBox"));
 
-	CCompareResults cr[learn.size()];
+	vector<CCompareResults> cr(learn.size());
 	for (uint i=0; i<learn.size(); i++){
 		cr[i].sample = learn[i];
 		cr[i].diff = cr[i].sample->differ(*sample);
 	}
-	sort (&cr[0], &cr[learn.size()]);
+	sort (cr.begin(), cr.end());
 	spectros.resize(COUNT);
 	QString txt;
 	for (uint i=0; i<COUNT; i++){

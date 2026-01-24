@@ -237,7 +237,7 @@ void MainWindow::loadClicked(){
 			MP3Filter(0.0);
 		}
 
-	} catch (exception e){
+	} catch (const exception& e){
 		QString msg = "File '";
 		msg += fileNameEdt->text();
 		msg += "' could not be opened";
@@ -305,7 +305,7 @@ void MainWindow::loadLearningClicked(){
 	progressBar->setMaximum(100);
 	progressBar->setValue(0);
 	learning = readLearning(filename.toStdString().c_str(), progressBar);
-	printf("Learning set size: %d\n", learning.size());
+	printf("Learning set size: %d\n", (int)learning.size());
 	statusBar()->showMessage("");
 	progressBar->setMaximum(100);
 	progressBar->setValue(100);
