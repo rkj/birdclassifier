@@ -458,8 +458,8 @@ TEST_F(AudioTest, WindowFunctionDifferentSizes) {
     const int sizes[] = {10, 256, 512, 1024, 4096};
 
     for (int size : sizes) {
-        double* input = new double[size];
-        double* output = new double[size];
+        std::vector<double> input(size);
+        std::vector<double> output(size);
 
         for (int i = 0; i < size; i++) {
             input[i] = 1.0;
@@ -467,19 +467,16 @@ TEST_F(AudioTest, WindowFunctionDifferentSizes) {
 
         // All three window functions should work
         EXPECT_NO_THROW({
-            HammingWindow(input, output, size);
+            HammingWindow(input.data(), output.data(), size);
         }) << "HammingWindow failed with size " << size;
 
         EXPECT_NO_THROW({
-            HanningWindow(input, output, size);
+            HanningWindow(input.data(), output.data(), size);
         }) << "HanningWindow failed with size " << size;
 
         EXPECT_NO_THROW({
-            BlackmanWindow(input, output, size);
+            BlackmanWindow(input.data(), output.data(), size);
         }) << "BlackmanWindow failed with size " << size;
-
-        delete[] input;
-        delete[] output;
     }
 }
 
@@ -828,4 +825,3 @@ TEST_F(AudioTest, CSampleNoFrequencyMemoryLeaks) {
     // If we get here without crashes, RAII is working
     SUCCEED();
 }
-

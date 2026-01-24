@@ -20,10 +20,12 @@
 #ifndef _FILTER_HXX
 #define _FILTER_HXX
 
+#include <vector>
+
 class CFilter{
 	public:
 		CFilter(int N, const double A[], const double B[]);
-		~CFilter();
+		~CFilter() = default;
 		double operator()(double x);
 		void initFilter(double data[]);
 		bool initiated(){
@@ -32,10 +34,10 @@ class CFilter{
 	private:
 		bool vInitiated;
 		int n;
-		double *a;
-		double *b;
-		double *x;
-		double *y;
+		std::vector<double> a;
+		std::vector<double> b;
+		std::vector<double> x;
+		std::vector<double> y;
 };
 
 extern CFilter MP3Filter;

@@ -28,6 +28,15 @@
 
 using namespace std;
 
+static vector<CSample*> toRawSamples(const vector<unique_ptr<CSample>>& samples){
+	vector<CSample*> raw;
+	raw.reserve(samples.size());
+	for (const auto& sample : samples){
+		raw.push_back(sample.get());
+	}
+	return raw;
+}
+
 bool verbose = false;
 bool printUnknown = true;
 bool crosstest = false;
@@ -128,7 +137,8 @@ void crossTest(vector<CSample*> &samples, uint split = 10){
 		}
 	}
 	test(toTest, learning);
-	vector<CSample*> cats = *categorize(learning, 0.200);
+	auto categories = categorize(learning, 0.200);
+	auto cats = toRawSamples(categories);
 	saveSamplesToFile(cats, "categories.freq");
 	test(samples, cats);
 	// saveSamples(cats, "categories/", true);
@@ -187,10 +197,9 @@ void test(vector<CSample*>& samples, vector<CSample*>& learning){
 }
 
 //0.075
-vector<CSample*>* categorize(vector<CSample*>& samples, double delta = 1.25){
+vector<unique_ptr<CSample>> categorize(vector<CSample*>& samples, double delta){
 	printf("Begining categorization\n");
-	vector<CSample*> * pCategories = new vector<CSample*>();
-	vector<CSample*>& categories = *pCategories;
+	vector<unique_ptr<CSample>> categories;
 	int blad = 0;
 	for (uint i=0; i<samples.size(); i++){
 		double bestValue = 100;
@@ -205,12 +214,12 @@ vector<CSample*>* categorize(vector<CSample*>& samples, double delta = 1.25){
 			// if (tmp > bestValue){
 			if (tmp < bestValue){
 				bestValue = tmp;
-				bestCat = categories[j];
+				bestCat = categories[j].get();
 			}
 		}
 		// if (bestCat == NULL || bestValue < delta){
 		if (bestCat == NULL || bestValue > delta){
-			categories.push_back(new CSample(*samples[i]));
+			categories.push_back(make_unique<CSample>(*samples[i]));
 		} else {
 			bestCat->consume(*samples[i]);
 			// if (bestCat->getName() != samples[i]->getName()){
@@ -230,12 +239,12 @@ vector<CSample*>* categorize(vector<CSample*>& samples, double delta = 1.25){
 	// 	categories[i]->saveFrequencies(buf);
 	// }
 	//test(samples, categories);
-	return pCategories;
+	return categories;
 }
 
 void categorize2(vector<CSample*> samples, double delta = 1.25){
 	printf("Begining categorization\n");
-	vector<CSample*> categories;
+	vector<unique_ptr<CSample>> categories;
 	int blad = 0;
 	for (uint i=0; i<samples.size(); i++){
 		double bestValue = 100;
@@ -250,12 +259,12 @@ void categorize2(vector<CSample*> samples, double delta = 1.25){
 			// if (tmp > bestValue){
 			if (tmp < bestValue){
 				bestValue = tmp;
-				bestCat = categories[j];
+				bestCat = categories[j].get();
 			}
 		}
 		// if (bestCat == NULL || bestValue < delta){
 		if (bestCat == NULL || bestValue > delta){
-			categories.push_back(new CSample(*samples[i]));
+			categories.push_back(make_unique<CSample>(*samples[i]));
 		} else {
 			bestCat->consume(*samples[i]);
 			// if (bestCat->getName() != samples[i]->getName()){
@@ -307,7 +316,7 @@ void analyze(vector<CSample*>& samples, vector<CSample*>& learning){
 
 CManager& cm = CManager::getInstance();
 
-vector<CSample*> readLearning(const char* dirName
+vector<unique_ptr<CSample>> readLearning(const char* dirName
 #ifdef QT_CORE_LIB
 		, QProgressBar* progress
 #endif
@@ -332,17 +341,17 @@ vector<CSample*> readLearning(const char* dirName
 		progress->setMaximum(2000);
 	}
 #endif
-	vector<CSample*> samples;
+	vector<unique_ptr<CSample>> samples;
 	for (;;){
 		cs = cm.getSample();
 		if (cs == NULL){
 			break;
 		}
-		if (cs->IsNull()){
-			delete cs;
+		unique_ptr<CSample> sample(cs);
+		if (sample->IsNull()){
 			continue;
 		}
-		samples.push_back(cs);
+		samples.push_back(std::move(sample));
 #ifdef QT_CORE_LIB
 		if (progress != NULL){
 			progress->setValue(samples.size());
@@ -499,7 +508,7 @@ int main_detect(int argc, char *argv[]){
 			filenames.push_back(argv[i]);
 		}
 	}	
-	vector<CSample*> learning;
+	vector<unique_ptr<CSample>> learning;
 	if (learnFile){
 		learning = readLearningFromFile(learnFile);
 	} else {
@@ -508,14 +517,17 @@ int main_detect(int argc, char *argv[]){
 		}
 		learning = readLearning(dirName);
 		if (saveLearning){
-			saveSamplesToFile(learning, "learning-all.freq");
+			auto learningRaw = toRawSamples(learning);
+			saveSamplesToFile(learningRaw, "learning-all.freq");
 		}
 	}
 	cm.setSavePrefix("");
+	auto learningRaw = toRawSamples(learning);
 	if (crosstest){
 		// crossTest(learning);
-		vector<CSample*> learn = readLearningFromFile("categories.freq");
-		test(learning, learn);
+		auto learn = readLearningFromFile("categories.freq");
+		auto learnRaw = toRawSamples(learn);
+		test(learningRaw, learnRaw);
 	}
 	if (filenames.size() > 0) {
 		if (save){
@@ -525,7 +537,7 @@ int main_detect(int argc, char *argv[]){
 			printf("Got %d files to analyze\n", (int)filenames.size());
 		}
 		for (vector<char*>::iterator it = filenames.begin(); it != filenames.end(); ++it){
-			analyzeDarlowo(*it, learning);
+			analyzeDarlowo(*it, learningRaw);
 		}
 	}
 	return 0;

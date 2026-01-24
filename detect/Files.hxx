@@ -22,6 +22,7 @@
 
 #include <sys/types.h>
 #include <string>
+#include <memory>
 #include <sndfile.h>
 #include <exception>
 
@@ -88,6 +89,6 @@ class CWaveFile : public CFile {
 
 class CFileFactory {
 	public:
-		static CFile* createCFile(const std::string& filename);
+		static std::unique_ptr<CFile> createCFile(const std::string& filename);
 };
 #endif

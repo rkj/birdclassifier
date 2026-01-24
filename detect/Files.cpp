@@ -20,6 +20,7 @@
 #include "Files.hxx"
 #include <climits>
 #include <vector>
+#include <memory>
 
 using namespace std;
 
@@ -106,9 +107,8 @@ void CWaveFile::fillBuffer(){
 	}
 }
 
-CFile* CFileFactory::createCFile(const string& filename){
+std::unique_ptr<CFile> CFileFactory::createCFile(const string& filename){
 	// With libsndfile 1.2.0+, MP3 and other formats are supported transparently.
 	// We use CWaveFile for everything.
-	return new CWaveFile(filename);
+	return std::make_unique<CWaveFile>(filename);
 }
-

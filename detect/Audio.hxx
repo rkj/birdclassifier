@@ -30,6 +30,7 @@
 #include <iostream>
 #include <list>
 #include <map>
+#include <memory>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -296,13 +297,17 @@ class CSample : public CSignal {
 
 class CAudio : public CSignal {
 	private:
-		std::list<CSample*> samples;
+		std::list<std::unique_ptr<CSample>> samples;
 	public:
-		std::list<CSample*> getSamples(){
-			return samples;
+		std::list<CSample*> getSamples() const{
+			std::list<CSample*> raw;
+			for (const auto& sample : samples){
+				raw.push_back(sample.get());
+			}
+			return raw;
 		}
 		explicit CAudio(const std::string&);
-		~CAudio();
+		~CAudio() = default;
 };
 
 void computeFrequencies(double * _in, std::vector<SFrequencies>& _out, int n);
@@ -323,5 +328,5 @@ inline double powerTodB(double value){
 
 int main_detect(int, char**);
 void saveSamplesToFile(std::vector<CSample*>& leraning, const char* fileName);
-std::vector<CSample*> readLearningFromFile(const char* filename);
+std::vector<std::unique_ptr<CSample>> readLearningFromFile(const char* filename);
 #endif

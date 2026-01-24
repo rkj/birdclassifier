@@ -23,6 +23,7 @@
 #include "ui_SettingsDialog.h"
 #include <QAbstractListModel>
 #include <vector>
+#include <memory>
 #include "Spectrogram.hxx"
 
 // Note: Do not use "using namespace std" in headers
@@ -34,24 +35,24 @@ class ColorListModel : public QAbstractListModel
 	Q_OBJECT
 
 	public:
-		ColorListModel(std::vector<CSpectColor*>& _colorList, QObject *parent = 0)	: QAbstractListModel(parent), colorList(_colorList){
+		ColorListModel(std::vector<std::unique_ptr<CSpectColor>>& _colorList, QObject *parent = 0)	: QAbstractListModel(parent), colorList(&_colorList){
 		}
 
 		int rowCount(const QModelIndex & = QModelIndex()) const {
-			return colorList.size();
+			return colorList->size();
 		}
 
 		QVariant data(const QModelIndex &index, int role) const {
 			if (!index.isValid())
 				return QVariant();
 
-			if ((int)index.row() >= (int)colorList.size())
+			if ((int)index.row() >= (int)colorList->size())
 				return QVariant();
 
 			if (role == Qt::DisplayRole || role == Qt::EditRole) {
-				return colorList[index.row()]->description();
+				return (*colorList)[index.row()]->description();
 			} else if (role == 9999){
-				return QVariant::fromValue(reinterpret_cast<quintptr>(colorList[index.row()]));
+				return QVariant::fromValue(reinterpret_cast<quintptr>((*colorList)[index.row()].get()));
 			} else {
 				return QVariant();
 			}
@@ -72,7 +73,7 @@ class ColorListModel : public QAbstractListModel
 		}
 
 	private:
-		std::vector<CSpectColor*> colorList;
+		std::vector<std::unique_ptr<CSpectColor>>* colorList;
 };
 
 class SettingsDialog : public QDialog, public Ui::SettingsDialog {

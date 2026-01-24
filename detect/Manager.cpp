@@ -26,8 +26,8 @@ void CManager::addFile(const string & filename){
 }
 
 CManager::CManager(){
-	currFile = NULL;
-	buffer = new double[BUFSIZE];
+	currFile = nullptr;
+	buffer.resize(BUFSIZE);
 	lastId = 0;
 	filter = NULL;
 	hopeCount = 0;
@@ -36,7 +36,6 @@ CManager::CManager(){
 }
 
 CManager::~CManager(){
-	delete [] buffer;
 }
 
 CSample* CManager::readFile(){
@@ -54,7 +53,7 @@ CSample* CManager::readFile(){
 			}
 			buffer[idx+j] = currFile->read();
 		}
-		if (computePower(buffer+idx, delta) > powerCutoff) {
+		if (computePower(buffer.data() + idx, delta) > powerCutoff) {
 			found = true;
 		}
 		idx += delta;
@@ -98,7 +97,7 @@ CSample* CManager::readFile(){
 				buffer[pos+j] = (*filter)(buffer[pos+j]);
 			}
 		}
-		if (computePower(buffer+pos, delta) <= powerCutoff){
+		if (computePower(buffer.data() + pos, delta) <= powerCutoff){
 			toLowCount += delta;
 			if (toLowCount > hopeCount){
 				break;
@@ -120,7 +119,7 @@ CSample* CManager::readFile(){
 		last++;
 	}
 	string name = fn.substr(last, min(fn.size()-last, (size_t)4));
-	CSample* sample = new CSample(buffer, pos-toLowCount, currFile->getSampleRate(), ++lastId, startFileSample, endFileSample, birdIdFromName(name));
+	CSample* sample = new CSample(buffer.data(), pos-toLowCount, currFile->getSampleRate(), ++lastId, startFileSample, endFileSample, birdIdFromName(name));
 	sample->setName(name);
 	return sample;
 }
@@ -141,7 +140,7 @@ void CManager::tryToSaveSample(CSample* sample){
 
 CSample* CManager::getSample(){
 	while (true){
-		if (currFile == NULL){
+		if (!currFile){
 			if (files.size() > 0){
 				currFile = CFileFactory::createCFile(files.front());
 				analyzedFiles.push_back(files.front());
@@ -162,12 +161,7 @@ CSample* CManager::getSample(){
 			}
 		}
 		if (!currFile->readPossible()){
-			if (release) {
-				delete currFile;
-			} else {
-				release = true;
-			}
-			currFile = NULL;
+			currFile.reset();
 		}
 	}
 	return NULL;

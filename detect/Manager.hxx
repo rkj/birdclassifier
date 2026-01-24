@@ -20,6 +20,8 @@
 #ifndef _MANAGER_HXX
 #define _MANAGER_HXX
 #include <list>
+#include <memory>
+#include <vector>
 #include "detect.hxx"
 #include "Files.hxx"
 #include "Filter.hxx"
@@ -54,17 +56,15 @@ class CManager {
 		uint getLastId(){
 			return lastId;
 		}
-		void setFile(CFile * file, bool r = false){
-			currFile = file;
-			release = r;
+		void setFile(std::unique_ptr<CFile> file){
+			currFile = std::move(file);
 		}
 	private:
 		std::list<std::string> files;
 		std::list<std::string> analyzedFiles;
-		CFile* currFile;
-		bool release;
-		
-		double *buffer;
+		std::unique_ptr<CFile> currFile;
+
+		std::vector<double> buffer;
 		double powerCutoff;
 		uint hopeCount;
 		CFilter* filter;

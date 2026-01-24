@@ -25,6 +25,7 @@
 #include <QMessageBox>
 
 #include <vector>
+#include <memory>
 #include <exception>
 
 #include "detect/Files.hxx"
@@ -70,13 +71,13 @@ class MainWindow : public QMainWindow, private Ui::MainWindow {
 		void readLearningFile();
 
 	private:
-		CSample* sample_tmp;
-		CFile * loadedFile;
-		RtAudio* audio;
-		std::vector<CSample*> learning;
+		std::unique_ptr<CSample> sample_tmp;
+		std::unique_ptr<CFile> loadedFile;
+		std::unique_ptr<RtAudio> audio;
+		std::vector<std::unique_ptr<CSample>> learning;
 		std::vector<double> selectedFrames;
-		std::vector<CSpectColor*> colorerList;
-		ColorListModel* colorsModel;
+		std::vector<std::unique_ptr<CSpectColor>> colorerList;
+		std::unique_ptr<ColorListModel> colorsModel;
 		void selectedCSample(CSample*);
 		void init();
 		bool recording;

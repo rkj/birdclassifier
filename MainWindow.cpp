@@ -32,6 +32,15 @@ QMutex samplesMutex;
 
 uint play_from, play_to;
 
+static vector<CSample*> toRawSamples(const vector<unique_ptr<CSample>>& samples){
+	vector<CSample*> raw;
+	raw.reserve(samples.size());
+	for (const auto& sample : samples){
+		raw.push_back(sample.get());
+	}
+	return raw;
+}
+
 const uint MAX_FRAMES = 44100/*fps*/ * 60 /*seconds*/ * 5 /*minutes*/;
 
 int MainWindow::playRecordCallback(void *outputBuffer,
@@ -130,14 +139,14 @@ void MainWindow::init(){
 	connect(actionReadLearning, &QAction::triggered, this, &MainWindow::readLearningFile);
 
 	filteredDraw->getAudioDraw()->setSelectable(false);
-	loadedFile = NULL;
-	sample_tmp = NULL;
+	loadedFile.reset();
+	sample_tmp.reset();
 	audio_BufferSize = 8192;
 	play_from = play_to = 0;
 	playing = false;
 	recording = false;
 	try {
-		audio = new RtAudio();
+		audio = make_unique<RtAudio>();
 		RtAudio::StreamParameters outputParams;
 		outputParams.deviceId = audio->getDefaultOutputDevice();
 		outputParams.nChannels = 1;
@@ -160,16 +169,16 @@ void MainWindow::init(){
 		fprintf(stderr, "RtAudio error: %s\n", error.what());
 		exit(EXIT_FAILURE);
 	}
-	colorerList.push_back(new CTryColor);
-	colorerList.push_back(new CColorWhite);
-	colorerList.push_back(new CBlackWhiteColor);
-	colorerList.push_back(new CWhiteBlackColor);
-	colorsModel = new ColorListModel(colorerList, this);
-	CSpectrogram::COLORER = colorerList[0];
+	colorerList.push_back(make_unique<CTryColor>());
+	colorerList.push_back(make_unique<CColorWhite>());
+	colorerList.push_back(make_unique<CBlackWhiteColor>());
+	colorerList.push_back(make_unique<CWhiteBlackColor>());
+	colorsModel = make_unique<ColorListModel>(colorerList, nullptr);
+	CSpectrogram::COLORER = colorerList[0].get();
 }
 
 MainWindow::~MainWindow(){
-	if (audio != NULL){
+	if (audio){
 		try {
 			if (audio->isStreamRunning()){
 				audio->abortStream();
@@ -180,14 +189,6 @@ MainWindow::~MainWindow(){
 		} catch (const RtAudioError &error) {
 			fprintf(stderr, "RtAudio shutdown error: %s\n", error.what());
 		}
-		delete audio;
-	}
-	delete colorsModel;
-	if (sample_tmp != NULL){
-		delete sample_tmp;
-	}
-	for (uint i=0; i<colorerList.size(); i++){
-		delete colorerList[i];
 	}
 }
 
@@ -222,7 +223,7 @@ void MainWindow::loadClicked(){
 #endif
 		const QString& filename = fileNameEdt->text();
 		loadedFile = CFileFactory::createCFile(filename.toStdString());
-		if (loadedFile == NULL){
+		if (!loadedFile){
 			fprintf(stderr, "Unable to open file [NULL returned]\n");
 			throw exception();
 		}
@@ -233,10 +234,7 @@ void MainWindow::loadClicked(){
 		fSamples.clear();
 		filteredDraw->setSignal(fSamples);
 		energyDraw->getEnergy()->setSignal(fSamples);
-		if (sample_tmp != NULL) {
-			delete sample_tmp;
-			sample_tmp = NULL;
-		}
+		sample_tmp.reset();
 
 		for (int i=0; i<50; ++i){
 			MP3Filter(0.0);
@@ -320,7 +318,8 @@ void MainWindow::selectedCSample(CSample* sample){
 	segmentDraw->setSignal(selectedFrames);
 	spectrogram->setSample(sample, true);
 	normalizedSpectrogram->setSample(sample, false);
-	CSample * bestMatch = test(sample, learning);
+	auto learningRaw = toRawSamples(learning);
+	CSample * bestMatch = test(sample, learningRaw);
 	if (bestMatch != NULL){
 		bestMatchSpectrogram->setSample(bestMatch, false);
 		QString desc = QString("%1 (%2)").arg(bestMatch->getName().c_str()).arg(sample->differ(*bestMatch), 0, 'g', 3);
@@ -336,18 +335,14 @@ void MainWindow::selectedSamples(int start, int end){
 	}
 	// printf("Od: %d do: %d\n", start, end);
 	try{
-		sample_tmp = new CSample(fSamples, start, end-start, 44100, 0, start, end, 0);
-		selectedCSample(sample_tmp);
+		sample_tmp = make_unique<CSample>(fSamples, start, end-start, 44100, 0, start, end, 0);
+		selectedCSample(sample_tmp.get());
 	} catch(...){
 		fprintf(stderr, "To short region selected\n");
 	}
 }
 
 void MainWindow::loadLearningClicked(){
-	for (vector<CSample*>::iterator it = learning.begin(); it != learning.end(); ++it){
-		delete (*it);
-		*it = NULL;
-	}
 	learning.clear();
 	const QString& filename = learningDirectoryEdt->text();
 	statusBar()->showMessage("Loading learning set, please wait...");
@@ -386,7 +381,7 @@ void MainWindow::playSelected(){
 }
 
 void MainWindow::stopPlaying(){
-	if (audio != NULL && audio->isStreamRunning()){
+	if (audio && audio->isStreamRunning()){
 		audio->abortStream();
 	}
 	if (recording){
@@ -419,7 +414,7 @@ void MainWindow::record(){
 }
 
 void MainWindow::openCompareWindow(){
-	if (sample_tmp == NULL){
+	if (!sample_tmp){
 		QMessageBox::information (this, "Select signal...", "To open comparison window you have to make spectrogram of audio fragment first.", QMessageBox::Ok);
 		return;
 	}
@@ -432,7 +427,8 @@ void MainWindow::openCompareWindow(){
 			return;
 		}
 	}
-	ComparisonWindow compWindow(this, sample_tmp, learning);
+	auto learningRaw = toRawSamples(learning);
+	ComparisonWindow compWindow(this, sample_tmp.get(), learningRaw);
 	compWindow.exec();
 }
 
@@ -440,7 +436,7 @@ void MainWindow::openSettingsWindow(){
 	SettingsDialog dial(this);
 	dial.xScaleSB->setValue(CSpectrogram::X_SCALE);
 	dial.brightnessSB->setValue(CSpectColor::BRIGHTNESS);
-	dial.colorsCB->setModel(colorsModel);
+	dial.colorsCB->setModel(colorsModel.get());
 	dial.colorsCB->setCurrentIndex(dial.colorsCB->findData(QVariant::fromValue(reinterpret_cast<quintptr>(CSpectrogram::COLORER)), 9999));
 	if (dial.exec() == QDialog::Accepted){
 		CSpectrogram::X_SCALE = dial.xScaleSB->value();
@@ -489,9 +485,9 @@ void MainWindow::openLearningEditor(){
 	dial.connectAll();
 	if (dial.exec() == QDialog::Accepted){
 		printf("Saving...\n");
-		learning = llmodel.getLearning();
-		saveSamplesToFile(learning, "saved.freq");
-		selectedCSample(sample_tmp);
+		auto learningRaw = toRawSamples(learning);
+		saveSamplesToFile(learningRaw, "saved.freq");
+		selectedCSample(sample_tmp.get());
 		update();
 	}
 
@@ -508,7 +504,7 @@ void MainWindow::readLearningFile(){
 #ifdef __DEBUG__
 		printf("Read %d samples\n", learning.size());
 #endif
-		selectedCSample(sample_tmp);
+		selectedCSample(sample_tmp.get());
 	}
 }
 

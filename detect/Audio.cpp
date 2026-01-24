@@ -274,7 +274,7 @@ CAudio::CAudio(const string& filename) : CSignal(filename){
 						end += CFFT::sGetFFTsize() - end + start + 1;
 					}
 					end = min (end + backSamples, (int)numFrames);
-					samples.push_back(new CSample(frames.data() + start, end-start, sampleRate, ++id, start, end, birdid));
+					samples.push_back(std::make_unique<CSample>(frames.data() + start, end-start, sampleRate, ++id, start, end, birdid));
 					Dprintf3("Wycinam: %fs-%fs\n", 1.0*start/sampleRate, 1.0*end/sampleRate);
 				}
 				start = -1;
@@ -284,7 +284,7 @@ CAudio::CAudio(const string& filename) : CSignal(filename){
 	}
 	if (start != -1){
 		if ((int)numFrames - start >= CFFT::sGetFFTsize()){
-			samples.push_back(new CSample(frames.data() + start, end-start, sampleRate, ++id, start, end, birdid));
+			samples.push_back(std::make_unique<CSample>(frames.data() + start, end-start, sampleRate, ++id, start, end, birdid));
 		}
 	}
 	Dprintf2("Sample: %s\n", filename.c_str());
@@ -292,15 +292,6 @@ CAudio::CAudio(const string& filename) : CSignal(filename){
 	// Clear frames vector to free memory (CSample objects have their own copies)
 	frames.clear();
 	frames.shrink_to_fit();
-}
-
-CAudio::~CAudio(){
-	for (list<CSample*>::iterator it = samples.begin(); it!=samples.end(); ++it){
-		if (*it != NULL){
-			delete *it;
-			*it = NULL;
-		}
-	}
 }
 
 CFFT::CFFT(){
@@ -508,11 +499,11 @@ void saveSamplesToFile(vector<CSample*>& learning, const char* filename){
 	fclose(file);
 }
 
-vector<CSample*> readLearningFromFile(const char* filename){
+vector<std::unique_ptr<CSample>> readLearningFromFile(const char* filename){
 	FILE* file = fopen(filename, "rb");
 	if (file == NULL){
 		fprintf(stderr, "Unable to open file: %s for reading\n", filename);
-		return vector<CSample*>();
+		return {};
 	}
 	uint fft_size, first_freq, last_freq, count;
 	fread(&fft_size, sizeof(FFT_SIZE), 1, file);
@@ -522,9 +513,9 @@ vector<CSample*> readLearningFromFile(const char* filename){
 	if (FFT_SIZE != fft_size || first_freq != FIRST_FREQ || LAST_FREQ != last_freq){
 		fprintf(stderr, "Wrong data format (FFT || FIRST_FREQ || LAST_FREQ differs)\n");
 		fclose(file);
-		return vector<CSample*>();
+		return {};
 	}
-	vector<CSample*> learn;
+	vector<std::unique_ptr<CSample>> learn;
 #ifdef __DEBUG__
 	printf("Reading %d samples\n", count);
 #endif
@@ -533,18 +524,19 @@ vector<CSample*> readLearningFromFile(const char* filename){
 		fread(&freqCount, sizeof(freqCount), 1, file);
 		fread(&birdId, sizeof(birdId), 1, file);
 		fread(&id, sizeof(id), 1, file);
-		SFrequencies * frequencies = new SFrequencies[freqCount];
+		auto frequencies = std::make_unique<SFrequencies[]>(freqCount);
 		for (uint i=0; i<freqCount; ++i){
 			uint freqs[COUNT_FREQ];
 			if (COUNT_FREQ != fread(freqs, sizeof(uint), COUNT_FREQ, file)){
 				fprintf(stderr, "Error during reading file\n");
+				fclose(file);
 				return learn;
 			}
 			for (uint j=0; j<COUNT_FREQ; ++j){
 				frequencies[i].freq[j] = 1.0*freqs[j]/4294967295u;
 			}
 		}
-		learn.push_back(new CSample(frequencies, freqCount, birdId, id));
+		learn.push_back(std::make_unique<CSample>(frequencies.release(), freqCount, birdId, id));
 	}
 #ifdef __DEBUG__
 	printf("Finished reading\n");

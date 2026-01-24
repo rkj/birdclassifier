@@ -23,6 +23,7 @@
 #include "ui_LearningDialog.h"
 #include <QAbstractListModel>
 #include <vector>
+#include <memory>
 #include "Spectrogram.hxx"
 
 // Note: Do not use "using namespace std" in headers
@@ -34,24 +35,24 @@ class LearningListModel : public QAbstractListModel
 	Q_OBJECT
 
 	public:
-		LearningListModel(std::vector<CSample*>& _learning, QObject *parent = 0)	: QAbstractListModel(parent), learning(_learning){
+		LearningListModel(std::vector<std::unique_ptr<CSample>>& _learning, QObject *parent = 0)	: QAbstractListModel(parent), learning(&_learning){
 		}
 
 		int rowCount(const QModelIndex & = QModelIndex()) const {
-			return learning.size();
+			return learning->size();
 		}
 
 		QVariant data(const QModelIndex &index, int role) const {
 			if (!index.isValid())
 				return QVariant();
 
-			if ((int)index.row() >= (int)learning.size())
+			if ((int)index.row() >= (int)learning->size())
 				return QVariant();
 
 			if (role == Qt::DisplayRole || role == Qt::EditRole) {
-				return (learning[index.row()]->getBirdAndId()).c_str();
+				return ((*learning)[index.row()]->getBirdAndId()).c_str();
 			} else if (role == 9999){
-				return QVariant::fromValue(reinterpret_cast<quintptr>(learning[index.row()]));
+				return QVariant::fromValue(reinterpret_cast<quintptr>((*learning)[index.row()].get()));
 			} else {
 				return QVariant();
 			}
@@ -73,15 +74,12 @@ class LearningListModel : public QAbstractListModel
 
 		bool removeRows (int row, int count, const QModelIndex& parent = QModelIndex()) {
 			beginRemoveRows(parent, row, row+count);
-			learning.erase(learning.begin()+row, learning.begin()+row+count);
+			learning->erase(learning->begin()+row, learning->begin()+row+count);
 			endRemoveRows();
 			return true;
 		}
-		std::vector<CSample*> getLearning(){
-			return learning;
-		}
 	private:
-		std::vector<CSample*> learning;
+		std::vector<std::unique_ptr<CSample>>* learning;
 };
 
 class LearningDialog : public QDialog, public Ui::LearningDialog {

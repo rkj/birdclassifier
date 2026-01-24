@@ -24,22 +24,16 @@
 
 CFilter::CFilter(int N, const double A[], const double B[]){
 	n = N;
-	a = new double[N];
-	b = new double[N];
-	x = new double[N];
-	y = new double[N];
+	vInitiated = false;
+	a.resize(N);
+	b.resize(N);
+	x.resize(N);
+	y.resize(N);
 	for (int i=0; i<N; ++i){
 		a[i] = A[i];
 		b[i] = B[i];
 		x[i] = y[i] = 0;
 	}
-}
-
-CFilter::~CFilter(){
-	delete [] a;
-	delete [] b;
-	delete [] x;
-	delete [] y;
 }
 
 double CFilter::operator()(double in){
@@ -117,4 +111,3 @@ int filter_main(int argc, char* argv[]){
 	printf("\nFinished processing\n");
 	return 0;
 }
-
