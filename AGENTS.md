@@ -12,6 +12,12 @@ bd close <id>         # Complete work
 bd sync               # Sync with git
 ```
 
+## Execution Rules
+
+- Always take the first item from `bd ready` without asking.
+- For each bead: claim it, fix it, run tests/quality gates, commit, then move to the next bead.
+- If human input is required, create a separate bead for that request, add a comment, and block dependent tasks on it while continuing other work.
+
 ## Landing the Plane (Session Completion)
 
 **When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
@@ -37,4 +43,3 @@ bd sync               # Sync with git
 - NEVER stop before pushing - that leaves work stranded locally
 - NEVER say "ready to push when you are" - YOU must push
 - If push fails, resolve and retry until it succeeds
-

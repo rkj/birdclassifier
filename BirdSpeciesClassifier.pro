@@ -10,15 +10,17 @@ VERSION = 0.83
 
 QMAKE_CXXFLAGS_DEBUG += -Werror
 
-LIBS += -lsndfile -lfftw3 -lm -L/usr/lib
+LIBS += -lsndfile -lfftw3 -lm -L/usr/lib -lrtaudio
 unix {
+	CONFIG += link_pkgconfig
+	PKGCONFIG += rtaudio
+}
+unix:!macx {
 	LIBS += -lasound -lpthread
-	DEFINES += __LINUX_ALSA__
 	OBJECTS_DIR = bin/
 }
 macx {
 	LIBS += -framework CoreAudio -lpthread
-	DEFINES += __MACOSX_CORE__
 	OBJECTS_DIR = bin/
 }
 win32 {
@@ -26,7 +28,6 @@ win32 {
 	LIBS += -LF:\Programy\msys\1.0\lib -LF:\Programy\msys\1.0\local\lib
 	INCLUDEPATH += F:\Programy\msys\1.0\local\include
 	INCLUDEPATH += F:\Programy\msys\1.0\include
-	DEFINES += __WINDOWS_DS__
 	OBJECTS_DIR = bin\
 }
 
@@ -61,9 +62,7 @@ HEADERS += MainWindow.hxx \
            Drawers/Spectrogram.hxx \
            mpglib/huffman.h \
            mpglib/mpg123.h \
-           mpglib/mpglib.h \
-           RtAudio/RtAudio.h \
-           RtAudio/RtError.h
+           mpglib/mpglib.h
 FORMS += MainWindow.ui \
 				 SettingsDialog.ui \
 				 LearningDialog.ui \
@@ -91,7 +90,6 @@ SOURCES += MainWindow.cpp \
            mpglib/decode_i386.c \
            mpglib/interface.c \
            mpglib/layer3.c \
-           mpglib/tabinit.c \
-           RtAudio/RtAudio.cpp
+           mpglib/tabinit.c
 RESOURCES += Images.qrc
 DISTFILES += img/* Drawers/drawplugin.pro COPYING

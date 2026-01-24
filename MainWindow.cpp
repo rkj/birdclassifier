@@ -25,46 +25,69 @@
 #include <QAction>
 #include <QSlider>
 
+#include <algorithm>
+
 using namespace std;
 QMutex samplesMutex;
-MainWindow* myWindow;
 
 uint play_from, play_to;
 
 const uint MAX_FRAMES = 44100/*fps*/ * 60 /*seconds*/ * 5 /*minutes*/;
 
-int MainWindow::playRecordCallback(char *buffer, int bufferSize, void * data){
-	AudioDraw* asd = myWindow->audioSignalDraw->getAudioDraw();
-	MainWindow* that = myWindow;
+int MainWindow::playRecordCallback(void *outputBuffer,
+                                   void *inputBuffer,
+                                   unsigned int nBufferFrames,
+                                   double /*streamTime*/,
+                                   RtAudioStreamStatus /*status*/,
+                                   void *userData){
+	MainWindow* that = static_cast<MainWindow*>(userData);
+	if (that == NULL){
+		return 0;
+	}
+	AudioDraw* asd = that->audioSignalDraw->getAudioDraw();
+	double * out = static_cast<double *>(outputBuffer);
+	const double * in = static_cast<const double *>(inputBuffer);
 	if (that->playing){
 		if (play_from >= play_to){
+			if (out != NULL){
+				std::fill(out, out + nBufferFrames, 0.0);
+			}
 			asd->setMarker(-1);
 			return 1;
 		}
-		double * b = (double *) buffer;
-		vector<double>& d = *(vector<double>*)data;
-		int count = min(bufferSize, (int)(play_to - play_from));
-		for (int i=0; i<count; ++i){
-			b[i] = d[play_from++];
-			if (i % 100 == 0){
+		unsigned int remaining = play_to - play_from;
+		unsigned int count = std::min(nBufferFrames, remaining);
+		if (out != NULL){
+			for (unsigned int i = 0; i < count; ++i){
+				out[i] = that->fSamples[play_from++];
 			}
+			if (count < nBufferFrames){
+				std::fill(out + count, out + nBufferFrames, 0.0);
+			}
+		} else {
+			play_from += count;
 		}
 		asd->setMarker(play_from);
 	} else if (that->recording){
-		double * b = (double *) buffer;
-		samplesMutex.lock();
-		for (int i=0; i<bufferSize; ++i){
-			that->samples.push_back(b[i]);
-			that->fSamples.push_back(MP3Filter(b[i]));
-			b[i] = 0;
+		if (out != NULL){
+			std::fill(out, out + nBufferFrames, 0.0);
 		}
-		samplesMutex.unlock();
+		if (in != NULL){
+			samplesMutex.lock();
+			for (unsigned int i = 0; i < nBufferFrames; ++i){
+				that->samples.push_back(in[i]);
+				that->fSamples.push_back(MP3Filter(in[i]));
+			}
+			samplesMutex.unlock();
+		}
 		that->audioSignalDraw->setSignal(that->samples);
 		that->filteredDraw->setSignal(that->fSamples);
 		// that->energyDraw->getEnergy()->updateSignal(that->fSamples);
 		if (that->samples.size() > 44100 * 60){
 			return 1;
 		}
+	} else if (out != NULL){
+		std::fill(out, out + nBufferFrames, 0.0);
 	}
 	return 0;
 }
@@ -114,10 +137,27 @@ void MainWindow::init(){
 	playing = false;
 	recording = false;
 	try {
-		audio = new RtAudio(0/*deviceId*/, 1/*channels*/, 0, 1, RTAUDIO_FLOAT64, 44100/*sampleRate*/, &audio_BufferSize, 4);
+		audio = new RtAudio();
+		RtAudio::StreamParameters outputParams;
+		outputParams.deviceId = audio->getDefaultOutputDevice();
+		outputParams.nChannels = 1;
+		outputParams.firstChannel = 0;
+		RtAudio::StreamParameters inputParams;
+		inputParams.deviceId = audio->getDefaultInputDevice();
+		inputParams.nChannels = 1;
+		inputParams.firstChannel = 0;
+		unsigned int bufferFrames = audio_BufferSize;
+		audio->openStream(&outputParams,
+		                  &inputParams,
+		                  RTAUDIO_FLOAT64,
+		                  44100,
+		                  &bufferFrames,
+		                  &MainWindow::playRecordCallback,
+		                  this);
+		audio_BufferSize = bufferFrames;
 	}
-	catch (RtError &error) {
-		error.printMessage();
+	catch (const RtAudioError &error) {
+		fprintf(stderr, "RtAudio error: %s\n", error.what());
 		exit(EXIT_FAILURE);
 	}
 	colorerList.push_back(new CTryColor);
@@ -129,9 +169,19 @@ void MainWindow::init(){
 }
 
 MainWindow::~MainWindow(){
-	audio->cancelStreamCallback();
-	audio->abortStream();
-	delete audio;
+	if (audio != NULL){
+		try {
+			if (audio->isStreamRunning()){
+				audio->abortStream();
+			}
+			if (audio->isStreamOpen()){
+				audio->closeStream();
+			}
+		} catch (const RtAudioError &error) {
+			fprintf(stderr, "RtAudio shutdown error: %s\n", error.what());
+		}
+		delete audio;
+	}
 	delete colorsModel;
 	if (sample_tmp != NULL){
 		delete sample_tmp;
@@ -313,12 +363,9 @@ void MainWindow::loadLearningClicked(){
 
 void MainWindow::playSelected(){
 	stopPlaying();
-	audio->cancelStreamCallback();
 	if (fSamples.size() <= 0){
 		return;
 	}
-	audio->setStreamCallback(MainWindow::playRecordCallback, (void*)&fSamples);
-	// audio->setStreamCallback(playCallback, samples);
 	sRegion sel = audioSignalDraw->getAudioDraw()->getSelection();
 	if (sel.end == -1){
 		sel = audioSignalDraw->getAudioDraw()->getViewRegion();
@@ -329,8 +376,8 @@ void MainWindow::playSelected(){
 	// printf("Play from: %d to %d\n", play_from, play_to);
 	try{
 		audio->startStream();
-	} catch (...) {
-		fprintf(stderr, "Unable to start playback\n");
+	} catch (const RtAudioError &error) {
+		fprintf(stderr, "Unable to start playback: %s\n", error.what());
 		if (QMessageBox::critical 
 				(this, "Unable to start playback", "Unable to start playback. Should I try again?", QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes){
 			playSelected();
@@ -339,7 +386,9 @@ void MainWindow::playSelected(){
 }
 
 void MainWindow::stopPlaying(){
-	audio->abortStream();
+	if (audio != NULL && audio->isStreamRunning()){
+		audio->abortStream();
+	}
 	if (recording){
 		recording = false;
 		audioSignalDraw->setSignal(samples);
@@ -362,8 +411,11 @@ void MainWindow::record(){
 	audioSignalDraw->setSignal(samples);
 	filteredDraw->setSignal(fSamples);
 	energyDraw->getEnergy()->setSignal(fSamples);
-	audio->setStreamCallback(MainWindow::playRecordCallback, NULL);
-	audio->startStream();
+	try{
+		audio->startStream();
+	} catch (const RtAudioError &error) {
+		fprintf(stderr, "Unable to start recording: %s\n", error.what());
+	}
 }
 
 void MainWindow::openCompareWindow(){
@@ -467,7 +519,6 @@ int main(int argc, char *argv[]) {
 	}
 	QApplication app(argc, argv);
 	MainWindow window;
-	myWindow = &window;
 	window.show();
 	return app.exec();
 }

@@ -50,6 +50,7 @@ sudo apt-get install -y \
     qt6-base-dev \
     libsndfile1-dev \
     libfftw3-dev \
+    librtaudio-dev \
     libasound2-dev \
     libpthread-stubs0-dev
 
@@ -108,6 +109,7 @@ sudo dnf install -y \
     qt6-qtbase-devel \
     libsndfile-devel \
     fftw-devel \
+    rtaudio-devel \
     alsa-lib-devel \
     cmake
 ```
@@ -133,7 +135,7 @@ cmake --build --preset gui
 ```bash
 # Install required packages
 sudo pacman -Syu
-sudo pacman -S --needed base-devel git qt6-base libsndfile fftw alsa-lib cmake
+sudo pacman -S --needed base-devel git qt6-base libsndfile fftw alsa-lib cmake rtaudio
 ```
 
 #### Build
@@ -152,6 +154,7 @@ cmake --build --preset gui
 - GCC/G++ compiler with C++17 support (GCC 7+)
 - CMake 3.21+ (for presets) or 3.16+ (manual build)
 - Qt6 development files (qt6-base)
+- RtAudio development files (>= 6.0)
 - libsndfile development files
 - FFTW3 development files
 - ALSA development files
@@ -178,7 +181,7 @@ xcode-select --install
 3. **Install Dependencies**:
 ```bash
 # Install Qt6 and other dependencies
-brew install cmake qt6 libsndfile fftw
+brew install cmake qt6 libsndfile fftw rtaudio
 
 # Link Qt6 (if necessary, or set CMAKE_PREFIX_PATH)
 # Usually CMake finds it automatically if installed via brew
@@ -219,10 +222,10 @@ make -j$(sysctl -n hw.ncpu)
    - Install CMake 3.21 or later from [cmake.org](https://cmake.org/download/).
 
 3. **Install Dependencies**:
-   - **libsndfile** and **fftw3** are required.
+   - **libsndfile**, **fftw3**, and **rtaudio** are required.
    - Recommended: Use [vcpkg](https://github.com/microsoft/vcpkg) to manage dependencies.
      ```powershell
-     .\vcpkg install libsndfile fftw3 --triplet x64-windows
+     .\vcpkg install libsndfile fftw3 rtaudio --triplet x64-windows
      ```
 
 ### Build using Command Line

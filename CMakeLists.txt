@@ -29,26 +29,25 @@ pkg_check_modules(SNDFILE REQUIRED sndfile)
 # Find FFTW3
 pkg_check_modules(FFTW3 REQUIRED fftw3)
 
+# Find RtAudio (system package or optional submodule)
+set(RTAUDIO_TARGET "")
+if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/external/rtaudio/CMakeLists.txt)
+    add_subdirectory(external/rtaudio)
+    if(TARGET rtaudio)
+        set(RTAUDIO_TARGET rtaudio)
+    elseif(TARGET RtAudio)
+        set(RTAUDIO_TARGET RtAudio)
+    endif()
+endif()
+
+if(NOT RTAUDIO_TARGET)
+    pkg_check_modules(RTAUDIO REQUIRED IMPORTED_TARGET rtaudio)
+    set(RTAUDIO_TARGET PkgConfig::RTAUDIO)
+endif()
+
 # Find pthread
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
-
-# Platform-specific audio libraries
-if(UNIX AND NOT APPLE)
-    # Linux - ALSA
-    pkg_check_modules(ALSA REQUIRED alsa)
-    set(AUDIO_LIBS ${ALSA_LIBRARIES})
-    set(AUDIO_DEFINES __LINUX_ALSA__)
-elseif(APPLE)
-    # macOS - CoreAudio
-    find_library(COREAUDIO_LIBRARY CoreAudio)
-    set(AUDIO_LIBS ${COREAUDIO_LIBRARY})
-    set(AUDIO_DEFINES __MACOSX_CORE__)
-elseif(WIN32)
-    # Windows - DirectSound
-    set(AUDIO_LIBS dsound)
-    set(AUDIO_DEFINES __WINDOWS_DS__)
-endif()
 
 # Source files for core library (non-GUI)
 set(CORE_SOURCES
@@ -57,7 +56,6 @@ set(CORE_SOURCES
     detect/Files.cpp
     detect/Filter.cpp
     detect/Manager.cpp
-    RtAudio/RtAudio.cpp
 )
 
 set(CORE_HEADERS
@@ -66,8 +64,6 @@ set(CORE_HEADERS
     detect/Files.hxx
     detect/Filter.hxx
     detect/Manager.hxx
-    RtAudio/RtAudio.h
-    RtAudio/RtError.h
 )
 
 # Create core library (shared between GUI and tests)
@@ -77,7 +73,6 @@ target_include_directories(bsc_core PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/detect
     ${CMAKE_CURRENT_SOURCE_DIR}/Drawers
-    ${CMAKE_CURRENT_SOURCE_DIR}/RtAudio
     ${SNDFILE_INCLUDE_DIRS}
     ${FFTW3_INCLUDE_DIRS}
 )
@@ -85,13 +80,9 @@ target_include_directories(bsc_core PUBLIC
 target_link_libraries(bsc_core PUBLIC
     ${SNDFILE_LIBRARIES}
     ${FFTW3_LIBRARIES}
-    ${AUDIO_LIBS}
+    ${RTAUDIO_TARGET}
     Threads::Threads
     m
-)
-
-target_compile_definitions(bsc_core PUBLIC
-    ${AUDIO_DEFINES}
 )
 
 # GUI application (optional)

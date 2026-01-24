@@ -186,14 +186,16 @@ QWidget
 | `LearningDialog.*` | Learning set management interface |
 | `ComparisonWindow.*` | Side-by-side sample comparison |
 
-#### 4. Audio I/O (`RtAudio/`)
+#### 4. Audio I/O (RtAudio)
 
 **Purpose**: Cross-platform real-time audio input/output
 
+**Implementation**: External RtAudio library (>= 6.0) via system package or submodule
+
 **Platforms Supported**:
-- Linux: ALSA (`__LINUX_ALSA__`)
-- macOS: CoreAudio (`__MACOSX_CORE__`)
-- Windows: DirectSound (`__WINDOWS_DS__`)
+- Linux: ALSA
+- macOS: CoreAudio
+- Windows: DirectSound
 
 **Interface**: Unified `RtAudio` class abstracts platform differences
 
@@ -672,7 +674,7 @@ sf_close(file);
 
 **Purpose**: Cross-platform audio I/O
 **License**: MIT-like
-**Usage**: Recording functionality
+**Usage**: Recording functionality (system library >= 6.0)
 
 #### mpglib (MP3 Decoding)
 

@@ -32,7 +32,7 @@
 #include "detect/Manager.hxx"
 #include "SettingsDialog.hxx"
 #include "ComparisonWindow.hxx"
-#include "RtAudio/RtAudio.h"
+#include <RtAudio.h>
 
 extern bool playing;
 extern uint play_from, play_to;
@@ -51,7 +51,7 @@ class MainWindow : public QMainWindow, private Ui::MainWindow {
 	private:
 		std::vector<double> samples;
 		std::vector<double> fSamples;
-		int audio_BufferSize;
+		unsigned int audio_BufferSize;
 
 	private slots:
 		void chooseClicked();
@@ -81,7 +81,12 @@ class MainWindow : public QMainWindow, private Ui::MainWindow {
 		void init();
 		bool recording;
 		bool playing;
-		static int playRecordCallback(char *buffer, int bufferSize, void * data);
+		static int playRecordCallback(void *outputBuffer,
+		                              void *inputBuffer,
+		                              unsigned int nBufferFrames,
+		                              double streamTime,
+		                              RtAudioStreamStatus status,
+		                              void *userData);
 };
 
 #endif // _MAINWINDOW_HXX

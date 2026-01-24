@@ -149,6 +149,7 @@ The application combines digital signal processing, pattern recognition, and int
 
 #### Required Libraries
 - **Qt4** - GUI framework
+- **RtAudio (>= 6.0)** - Real-time audio I/O
 - **libsndfile** - WAV file I/O
 - **FFTW3** - Fast Fourier Transform computations
 - **pthread** - Multi-threading support
@@ -178,7 +179,7 @@ For detailed installation instructions for your platform, see [INSTALL.md](INSTA
 # Install dependencies
 sudo apt-get update
 sudo apt-get install build-essential qt4-dev-tools qt4-qmake \
-                     libsndfile1-dev libfftw3-dev libasound2-dev
+                     libsndfile1-dev libfftw3-dev libasound2-dev librtaudio-dev
 
 # Clone repository
 git clone https://github.com/yourusername/birdclassifier.git
@@ -326,10 +327,6 @@ birdclassifier/
 │   ├── SpectroDraw.*          # Spectrogram display
 │   ├── Spectrogram.*          # Spectrogram rendering
 │   └── EnergyDraw.*           # Energy profile display
-│
-├── RtAudio/                    # Real-time audio I/O
-│   ├── RtAudio.h/cpp          # Cross-platform audio API
-│   └── RtError.h              # Error handling
 │
 ├── mpglib/                     # MP3 decoding library
 │   ├── interface.c            # Library interface
