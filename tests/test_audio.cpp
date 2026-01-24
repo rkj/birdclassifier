@@ -11,7 +11,22 @@
 #include <gtest/gtest.h>
 #include <cmath>
 #include <vector>
+#include <memory>
 #include "detect/Audio.hxx"
+#include "detect/Manager.hxx"
+#include "detect/detect.hxx"
+
+namespace {
+std::unique_ptr<CSample> makeSample(uint birdId, uint sampleId, const std::string& name, double value) {
+    auto frequencies = std::make_unique<SFrequencies[]>(1);
+    for (uint i = 0; i < COUNT_FREQ; ++i) {
+        frequencies[0].freq[i] = value;
+    }
+    auto sample = std::make_unique<CSample>(frequencies.release(), 1, birdId, sampleId);
+    sample->setName(name);
+    return sample;
+}
+}
 
 // Test fixture for audio tests
 class AudioTest : public ::testing::Test {
@@ -268,6 +283,36 @@ TEST_F(AudioTest, SFrequenciesDiffer_ShouldBeSymmetric) {
 }
 
 // ============================================================================
+// CManager Tests
+// ============================================================================
+
+TEST_F(AudioTest, CManagerResetQueueClearsFiles) {
+    CFFT fft;
+    CManager manager(fft);
+
+    manager.addFile("dummy.wav");
+    manager.resetQueue();
+
+    EXPECT_EQ(manager.getSample(), nullptr)
+        << "Resetting the queue should clear pending files";
+}
+
+TEST_F(AudioTest, CManagerExtractsSampleFromMemoryFile) {
+    CFFT fft;
+    CManager manager(fft);
+    manager.setPowerCutoff(0.0);
+
+    std::vector<double> frames(3000, 0.5);
+    auto memoryFile = std::make_unique<CMemoryFile>(frames.data(), frames.size(), 44100, "memory");
+    manager.setFile(std::move(memoryFile));
+
+    std::unique_ptr<CSample> sample(manager.getSample());
+    ASSERT_NE(sample, nullptr);
+    EXPECT_GT(sample->getFramesCount(), 0u);
+    EXPECT_EQ(manager.getSample(), nullptr);
+}
+
+// ============================================================================
 // CFFT Tests
 // ============================================================================
 
@@ -285,6 +330,21 @@ TEST_F(AudioTest, CFftGetSize) {
 
     EXPECT_EQ(size, FFT_SIZE)
         << "FFT size should match FFT_SIZE constant";
+}
+
+// ============================================================================
+// Detection Logic Tests
+// ============================================================================
+
+TEST_F(AudioTest, CategorizeMergesSimilarSamples) {
+    auto sample1 = makeSample(1, 1, "TEST", 0.5);
+    auto sample2 = makeSample(1, 2, "TEST", 0.5);
+
+    std::vector<CSample*> samples = {sample1.get(), sample2.get()};
+    auto categories = categorize(samples, 1.25);
+
+    EXPECT_EQ(categories.size(), 1u)
+        << "Similar samples with the same name should collapse into one category";
 }
 
 // ============================================================================
@@ -713,6 +773,8 @@ TEST_F(AudioTest, AudioConfigIndependentOfGlobal) {
  * ✅ Window functions (6 tests)
  * ✅ SFrequencies operations (4 tests)
  * ✅ CFFT instances (2 tests)
+ * ✅ CManager behavior (2 tests)
+ * ✅ Detection categorization (1 test)
  * ✅ Integration tests (2 tests)
  * ✅ Edge cases (2 tests)
  * ✅ Performance tests (1 test)
@@ -720,7 +782,7 @@ TEST_F(AudioTest, AudioConfigIndependentOfGlobal) {
  * ✅ String safety & const correctness (5 tests) - PR #3
  * ✅ Configuration management (5 tests) - PR #4
  *
- * Total: 41 tests
+ * Total: 44 tests
  *
  * These tests provide a foundation for modernization.
  * As we refactor, we'll ensure all tests continue to pass.
