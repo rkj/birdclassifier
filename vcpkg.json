@@ -5,6 +5,7 @@
     "libsndfile",
     "fftw3",
     "rtaudio",
-    "qtbase"
+    "qtbase",
+    "qtcharts"
   ]
 }

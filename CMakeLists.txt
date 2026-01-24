@@ -87,7 +87,7 @@ target_link_libraries(bsc_core PUBLIC
 
 # GUI application (optional)
 if(BUILD_GUI)
-    find_package(Qt6 COMPONENTS Core Gui Widgets)
+    find_package(Qt6 COMPONENTS Core Gui Widgets Charts)
 
     if(Qt6_FOUND)
         # Enable Qt6 automatic MOC, UIC, and RCC processing
@@ -151,6 +151,7 @@ if(BUILD_GUI)
             Qt6::Core
             Qt6::Gui
             Qt6::Widgets
+            Qt6::Charts
         )
 
         target_include_directories(BSC PRIVATE

@@ -4,6 +4,7 @@
 
 TEMPLATE = app
 CONFIG += qt debug_and_release stl exceptions warn_on
+QT += charts
 DESTDIR = bin
 
 VERSION = 0.83

@@ -54,7 +54,7 @@
  <customwidgets>
   <customwidget>
    <class>CEnergyDraw</class>
-   <extends>QLabel</extends>
+   <extends>QChartView</extends>
    <header>EnergyDraw.hxx</header>
    <container>0</container>
    <pixmap></pixmap>

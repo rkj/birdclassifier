@@ -73,6 +73,7 @@ sudo apt-get install -y build-essential git
 # Install required development libraries
 sudo apt-get install -y \
     qt6-base-dev \
+    qt6-charts-dev \
     libsndfile1-dev \
     libfftw3-dev \
     librtaudio-dev \
@@ -132,6 +133,7 @@ sudo dnf groupinstall "Development Tools"
 # Install required development libraries
 sudo dnf install -y \
     qt6-qtbase-devel \
+    qt6-qtcharts-devel \
     libsndfile-devel \
     fftw-devel \
     rtaudio-devel \
@@ -160,7 +162,7 @@ cmake --build --preset gui
 ```bash
 # Install required packages
 sudo pacman -Syu
-sudo pacman -S --needed base-devel git qt6-base libsndfile fftw alsa-lib cmake rtaudio
+sudo pacman -S --needed base-devel git qt6-base qt6-charts libsndfile fftw alsa-lib cmake rtaudio
 ```
 
 #### Build
@@ -179,6 +181,7 @@ cmake --build --preset gui
 - GCC/G++ compiler with C++17 support (GCC 7+)
 - CMake 3.21+ (for presets) or 3.16+ (manual build)
 - Qt6 development files (qt6-base)
+- Qt6 Charts module
 - RtAudio development files (>= 6.0)
 - libsndfile development files
 - FFTW3 development files
@@ -250,7 +253,7 @@ make -j$(sysctl -n hw.ncpu)
    - **libsndfile**, **fftw3**, **rtaudio**, and **Qt6** are required.
    - Recommended: Use [vcpkg](https://github.com/microsoft/vcpkg) to manage dependencies.
      ```powershell
-     .\vcpkg install libsndfile fftw3 rtaudio qtbase --triplet x64-windows
+     .\vcpkg install libsndfile fftw3 rtaudio qtbase qtcharts --triplet x64-windows
      ```
 
 ### Build using Command Line

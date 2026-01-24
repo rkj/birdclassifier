@@ -20,13 +20,15 @@
 #ifndef _ENERGYDRAW_HXX
 #define _ENERGYDRAW_HXX
 
-#include <QLabel>
+#include <QtCharts/QChartView>
+#include <QtCharts/QLineSeries>
+#include <QtCharts/QValueAxis>
 #include "AudioDraw.hxx"
 #include <list>
 #include <vector>
 
 const int DELTA = 64;
-class CEnergyDraw : public QLabel {
+class CEnergyDraw : public QtCharts::QChartView {
 	Q_OBJECT
 	public:
 		static const int LEGEND_WIDTH = 50;
@@ -36,18 +38,32 @@ class CEnergyDraw : public QLabel {
 		CEnergyDraw(){
 			init();
 		}
-		CEnergyDraw(QWidget* w) : QLabel(w) {
+		CEnergyDraw(QWidget* w) : QtCharts::QChartView(w) {
 			init();
 		}
-		CEnergyDraw(QGroupBox* &gb) : QLabel(gb){
+		CEnergyDraw(QGroupBox* &gb) : QtCharts::QChartView(gb){
 			init();
 		}
 		~CEnergyDraw();
 		int frameToPanel(int x){
-			return ((long long)x - viewRegion.start) * width() / (viewRegion.end - viewRegion.start);
+			if (viewRegion.end <= viewRegion.start || chart == nullptr){
+				return 0;
+			}
+			const QRectF area = chart->plotArea();
+			if (area.width() <= 0.0){
+				return 0;
+			}
+			return static_cast<int>(area.left() + ((long long)x - viewRegion.start) * area.width() / (viewRegion.end - viewRegion.start));
 		};
 		int panelToFrame(int x){
-			return (long long)x*(viewRegion.end-viewRegion.start)/width() + viewRegion.start;
+			if (viewRegion.end <= viewRegion.start || chart == nullptr){
+				return 0;
+			}
+			const QRectF area = chart->plotArea();
+			if (area.width() <= 0.0){
+				return viewRegion.start;
+			}
+			return static_cast<int>((long long)(x - area.left()) * (viewRegion.end - viewRegion.start) / area.width() + viewRegion.start);
 		};
 	protected:
 		void paintEvent(QPaintEvent *event);
@@ -63,12 +79,17 @@ class CEnergyDraw : public QLabel {
 
 	private:
 		void init();
+		void refreshSeries();
+		void refreshCutoff();
 		std::vector<double> powers;
+		QtCharts::QChart* chart;
+		QtCharts::QLineSeries* series;
+		QtCharts::QLineSeries* cutoffSeries;
+		QtCharts::QValueAxis* axisX;
+		QtCharts::QValueAxis* axisY;
 		sRegion viewRegion;
 		int cutOff;
 		std::list<sRegion> selection;
-		int powerToY(double);
-		double yToPower(int);
 		bool changes;
 		void updateSelection();
 		void updateSelection(int);
