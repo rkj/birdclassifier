@@ -183,28 +183,19 @@ struct OrigFrequencies {
 };
 
 class CFFT {
-	private:
+	public:
 		CFFT();
+		~CFFT();
+		int getFFTsize() const{
+			return FFT_SIZE;
+		}
+		void compute(double * in, SFrequencies& out);
+		void compute(double * _in, SFrequencies& _out, OrigFrequencies& _oOut);
+
+	private:
 		double * in;
 		double * out;
 		fftw_plan rplan;
-
-	public:
-		static CFFT& getInstance(){
-			static CFFT singleton;
-			return singleton;
-		}
-		int getFFTsize(){
-			return FFT_SIZE;
-		}
-		static int sGetFFTsize(){
-			return getInstance().getFFTsize();
-		}
-		~CFFT();
-		static void sCompute(double * in, SFrequencies& out);
-		static void sCompute(double * in, SFrequencies& out, OrigFrequencies& oOut);
-		void compute(double * in, SFrequencies& out);
-		void compute(double * _in, SFrequencies& _out, OrigFrequencies& _oOut);
 };
 
 class CSignal {
@@ -248,10 +239,10 @@ class CSample : public CSignal {
 		int saveFrequencies(FILE *);
 		void saveFrequenciesTxt(const std::string& filename);
 		CSample(const CSample&);
-		explicit CSample(const std::string& filename);
+		explicit CSample(const std::string& filename, CFFT* fft = nullptr);
 		explicit CSample(SFrequencies*, uint freqcount, uint birdid, uint sampleid);
-		explicit CSample(double *, int n, uint sampleRate, uint id, uint start, uint end, uint bid);
-		explicit CSample(std::vector<double>&, int startS, int n, uint sampleRate, uint id, uint start, uint end, uint bid);
+		explicit CSample(double *, int n, uint sampleRate, uint id, uint start, uint end, uint bid, CFFT* fft = nullptr);
+		explicit CSample(std::vector<double>&, int startS, int n, uint sampleRate, uint id, uint start, uint end, uint bid, CFFT* fft = nullptr);
 		~CSample() = default;
 
 		uint getStartSampleNo() const {
@@ -310,6 +301,8 @@ class CAudio : public CSignal {
 		~CAudio() = default;
 };
 
+void computeFrequencies(CFFT& fft, double * _in, std::vector<SFrequencies>& _out, int n);
+void computeFrequencies(CFFT& fft, double * _in, std::vector<SFrequencies>& _out, std::vector<OrigFrequencies>& _oOut, int n);
 void computeFrequencies(double * _in, std::vector<SFrequencies>& _out, int n);
 void computeFrequencies(double * _in, std::vector<SFrequencies>& _out, std::vector<OrigFrequencies>& _oOut, int n);
 void saveSamples(std::vector<CSample*>& samples, std::string dir, bool frequencies);

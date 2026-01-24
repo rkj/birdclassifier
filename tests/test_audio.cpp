@@ -271,17 +271,17 @@ TEST_F(AudioTest, SFrequenciesDiffer_ShouldBeSymmetric) {
 // CFFT Tests
 // ============================================================================
 
-TEST_F(AudioTest, CFftSingletonInstance) {
-    CFFT& fft1 = CFFT::getInstance();
-    CFFT& fft2 = CFFT::getInstance();
+TEST_F(AudioTest, CFftInstancesAreIndependent) {
+    CFFT fft1;
+    CFFT fft2;
 
-    // Should return same instance
-    EXPECT_EQ(&fft1, &fft2)
-        << "CFFT should be a singleton";
+    EXPECT_NE(&fft1, &fft2)
+        << "CFFT instances should be independent";
 }
 
 TEST_F(AudioTest, CFftGetSize) {
-    int size = CFFT::sGetFFTsize();
+    CFFT fft;
+    int size = fft.getFFTsize();
 
     EXPECT_EQ(size, FFT_SIZE)
         << "FFT size should match FFT_SIZE constant";
@@ -712,7 +712,7 @@ TEST_F(AudioTest, AudioConfigIndependentOfGlobal) {
  * ✅ Power to dB conversion (3 tests)
  * ✅ Window functions (6 tests)
  * ✅ SFrequencies operations (4 tests)
- * ✅ CFFT singleton (2 tests)
+ * ✅ CFFT instances (2 tests)
  * ✅ Integration tests (2 tests)
  * ✅ Edge cases (2 tests)
  * ✅ Performance tests (1 test)

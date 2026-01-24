@@ -335,7 +335,7 @@ void MainWindow::selectedSamples(int start, int end){
 	}
 	// printf("Od: %d do: %d\n", start, end);
 	try{
-		sample_tmp = make_unique<CSample>(fSamples, start, end-start, 44100, 0, start, end, 0);
+		sample_tmp = make_unique<CSample>(fSamples, start, end-start, 44100, 0, start, end, 0, &fft);
 		selectedCSample(sample_tmp.get());
 	} catch(...){
 		fprintf(stderr, "To short region selected\n");
@@ -349,7 +349,7 @@ void MainWindow::loadLearningClicked(){
 	progressBar->setMinimum(0);
 	progressBar->setMaximum(100);
 	progressBar->setValue(0);
-	learning = readLearning(filename.toStdString().c_str(), progressBar);
+	learning = readLearning(filename.toStdString().c_str(), manager, progressBar);
 	printf("Learning set size: %d\n", (int)learning.size());
 	statusBar()->showMessage("");
 	progressBar->setMaximum(100);

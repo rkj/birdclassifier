@@ -144,7 +144,7 @@ CSignal      // Base class for audio signals
   └─ CSample // Individual audio sample with frequency data
   └─ CAudio  // Complete audio file
 
-CFFT         // Singleton FFT processor
+CFFT         // FFT processor (injected)
 SFrequencies // Normalized frequency data
 Manager      // Batch processing coordinator
 ```
@@ -530,27 +530,21 @@ CSignal (base class)
         └── samples: list<CSample*>
 ```
 
-#### CFFT Singleton
+#### CFFT Instance
 
 ```cpp
 class CFFT {
-private:
-    CFFT();  // Private constructor
-    double* in;
-    double* out;
-    fftw_plan rplan;
-
 public:
-    static CFFT& getInstance();
-    static void sCompute(double* in, SFrequencies& out);
+    CFFT();  // Public constructor
     void compute(double* in, SFrequencies& out);
 };
 
 // Usage:
-CFFT::sCompute(audioData, freqOutput);
+CFFT fft;
+fft.compute(audioData, freqOutput);
 ```
 
-**Design**: Singleton pattern ensures single FFTW plan instance (expensive to create).
+**Design**: FFT context is constructed and passed where needed to avoid global state.
 
 ---
 
@@ -595,7 +589,7 @@ displayValue = log10(magnitude + epsilon) * scaleFactor
 
 ### Patterns Used
 
-1. **Singleton** (`CFFT`)
+1. **FFT Context** (`CFFT` passed via dependency injection)
    - Ensures single FFTW plan instance
    - Global access point
 

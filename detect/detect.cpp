@@ -314,15 +314,14 @@ void analyze(vector<CSample*>& samples, vector<CSample*>& learning){
 	}
 }
 
-CManager& cm = CManager::getInstance();
-
-vector<unique_ptr<CSample>> readLearning(const char* dirName
+vector<unique_ptr<CSample>> readLearning(const char* dirName, CManager& manager
 #ifdef QT_CORE_LIB
 		, QProgressBar* progress
 #endif
 		){
 	if (verbose)
 		printf("Reading learning set\n");
+	manager.resetQueue();
 	DIR *dir = opendir(dirName);
 	struct dirent* de;
 	while(dir){
@@ -333,7 +332,7 @@ vector<unique_ptr<CSample>> readLearning(const char* dirName
 		if (!strncmp(de->d_name, ".", 1) || !strcmp(de->d_name, ".."))
 			continue;
 		string filename = string(dirName)+"/"+de->d_name;
-		cm.addFile(filename);
+		manager.addFile(filename);
 	}
 	CSample* cs; 
 #ifdef QT_CORE_LIB
@@ -343,7 +342,7 @@ vector<unique_ptr<CSample>> readLearning(const char* dirName
 #endif
 	vector<unique_ptr<CSample>> samples;
 	for (;;){
-		cs = cm.getSample();
+		cs = manager.getSample();
 		if (cs == NULL){
 			break;
 		}
@@ -367,17 +366,18 @@ vector<unique_ptr<CSample>> readLearning(const char* dirName
 	return samples;
 }
 
-void analyzeDarlowo(const char* filename, vector<CSample*>& learning){
-	cm.addFile(filename);
-	cm.setPowerCutoff(POWER_CUTOFF);
+void analyzeDarlowo(const char* filename, vector<CSample*>& learning, CManager& manager){
+	manager.resetQueue();
+	manager.addFile(filename);
+	manager.setPowerCutoff(POWER_CUTOFF);
 	if (applyFilter){
-		cm.setFilter(&MP3Filter);
+		manager.setFilter(&MP3Filter);
 	}
 	printf("Beginning analysis of %s.\n", filename);
 	vector<CSample*> testSamples;
 	CSample* cs;
 	for (;;){
-		cs = cm.getSample();
+		cs = manager.getSample();
 		if (cs == NULL){
 			break;
 		}
@@ -431,6 +431,8 @@ int main_detect(int argc, char *argv[]){
 		print_help(argv[0]);
 		return 5;
 	}
+	CFFT fft;
+	CManager manager(fft);
 	char * saveLearning = NULL;
 	char * save = NULL;
 	const char * dirName = "samples/";
@@ -456,7 +458,7 @@ int main_detect(int argc, char *argv[]){
 			}
 			double tmp;
 			sscanf(argv[i], "%lg", &tmp);
-			cm.setHopeTime(tmp);
+			manager.setHopeTime(tmp);
 		} else if (strcmp(argv[i], "-snr") == 0){
 			if (++i == argc){
 				printf("No value!\n");
@@ -513,15 +515,15 @@ int main_detect(int argc, char *argv[]){
 		learning = readLearningFromFile(learnFile);
 	} else {
 		if (saveLearning){
-			cm.setSavePrefix(saveLearning);
+			manager.setSavePrefix(saveLearning);
 		}
-		learning = readLearning(dirName);
+		learning = readLearning(dirName, manager);
 		if (saveLearning){
 			auto learningRaw = toRawSamples(learning);
 			saveSamplesToFile(learningRaw, "learning-all.freq");
 		}
 	}
-	cm.setSavePrefix("");
+	manager.setSavePrefix("");
 	auto learningRaw = toRawSamples(learning);
 	if (crosstest){
 		// crossTest(learning);
@@ -531,13 +533,13 @@ int main_detect(int argc, char *argv[]){
 	}
 	if (filenames.size() > 0) {
 		if (save){
-			cm.setSavePrefix(save);
+			manager.setSavePrefix(save);
 		}
 		if (verbose) {
 			printf("Got %d files to analyze\n", (int)filenames.size());
 		}
 		for (vector<char*>::iterator it = filenames.begin(); it != filenames.end(); ++it){
-			analyzeDarlowo(*it, learningRaw);
+			analyzeDarlowo(*it, learningRaw, manager);
 		}
 	}
 	return 0;

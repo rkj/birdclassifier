@@ -25,9 +25,16 @@ void CManager::addFile(const string & filename){
 	files.push_back(filename);
 }
 
-CManager::CManager(){
+void CManager::resetQueue(){
+	files.clear();
+	analyzedFiles.clear();
+	currFile.reset();
+}
+
+CManager::CManager(CFFT& fftRef){
 	currFile = nullptr;
 	buffer.resize(BUFSIZE);
+	fft = &fftRef;
 	lastId = 0;
 	filter = NULL;
 	hopeCount = 0;
@@ -119,7 +126,7 @@ CSample* CManager::readFile(){
 		last++;
 	}
 	string name = fn.substr(last, min(fn.size()-last, (size_t)4));
-	CSample* sample = new CSample(buffer.data(), pos-toLowCount, currFile->getSampleRate(), ++lastId, startFileSample, endFileSample, birdIdFromName(name));
+	CSample* sample = new CSample(buffer.data(), pos-toLowCount, currFile->getSampleRate(), ++lastId, startFileSample, endFileSample, birdIdFromName(name), fft);
 	sample->setName(name);
 	return sample;
 }

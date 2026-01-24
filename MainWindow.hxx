@@ -43,7 +43,7 @@ class MainWindow : public QMainWindow, private Ui::MainWindow {
 	Q_OBJECT
 
 	public:
-		MainWindow() : QMainWindow(){
+		MainWindow() : QMainWindow(), fft(), manager(fft){
 			init();
 		}
 		~MainWindow();
@@ -74,6 +74,8 @@ class MainWindow : public QMainWindow, private Ui::MainWindow {
 		std::unique_ptr<CSample> sample_tmp;
 		std::unique_ptr<CFile> loadedFile;
 		std::unique_ptr<RtAudio> audio;
+		CFFT fft;
+		CManager manager;
 		std::vector<std::unique_ptr<CSample>> learning;
 		std::vector<double> selectedFrames;
 		std::vector<std::unique_ptr<CSpectColor>> colorerList;

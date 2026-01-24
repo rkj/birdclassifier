@@ -78,21 +78,29 @@ void CSignal::saveAudio(const string& filename){
 	sf_close(file);
 }
 
-CSample::CSample(const string& filename) : CSignal(filename) {
+CSample::CSample(const string& filename, CFFT* fft) : CSignal(filename) {
 	birdId = birdIdFromName(getName());
-	computeFrequencies(frames.data(), frequencies, origFrequencies, frames.size());
+	if (fft != nullptr){
+		computeFrequencies(*fft, frames.data(), frequencies, origFrequencies, frames.size());
+	} else {
+		computeFrequencies(frames.data(), frequencies, origFrequencies, frames.size());
+	}
 	isNull = false;
 	normalize();
 }
 
-CSample::CSample(double* _frames, int n, uint _sampleRate, uint _id, uint start, uint end, uint _birdId){
+CSample::CSample(double* _frames, int n, uint _sampleRate, uint _id, uint start, uint end, uint _birdId, CFFT* fft){
 	if (n <= 0){
 		fprintf(stderr, "CSample: n <= 0\n");
 		throw exception();
 	}
 	sampleRate = _sampleRate;
 	frames.assign(_frames, _frames + n);
-	computeFrequencies(frames.data(), frequencies, origFrequencies, frames.size());
+	if (fft != nullptr){
+		computeFrequencies(*fft, frames.data(), frequencies, origFrequencies, frames.size());
+	} else {
+		computeFrequencies(frames.data(), frequencies, origFrequencies, frames.size());
+	}
 	isNull = false;
 	normalize();
 	id = _id;
@@ -101,14 +109,18 @@ CSample::CSample(double* _frames, int n, uint _sampleRate, uint _id, uint start,
 	endSample = end;
 }
 
-CSample::CSample(vector<double>& samples, int startS, int n, uint _sampleRate, uint _id, uint start, uint end, uint _birdId){
+CSample::CSample(vector<double>& samples, int startS, int n, uint _sampleRate, uint _id, uint start, uint end, uint _birdId, CFFT* fft){
 	if (n <= 0){
 		fprintf(stderr, "CSample: n <= 0\n");
 		throw exception();
 	}
 	sampleRate = _sampleRate;
 	frames.assign(samples.begin() + startS, samples.begin() + startS + n);
-	computeFrequencies(frames.data(), frequencies, origFrequencies, frames.size());
+	if (fft != nullptr){
+		computeFrequencies(*fft, frames.data(), frequencies, origFrequencies, frames.size());
+	} else {
+		computeFrequencies(frames.data(), frequencies, origFrequencies, frames.size());
+	}
 	isNull = false;
 	normalize();
 	id = _id;
@@ -252,6 +264,7 @@ CAudio::CAudio(const string& filename) : CSignal(filename){
 	int count = 0;
 	uint birdid = birdIdFromName(getName());
 	size_t numFrames = frames.size();
+	CFFT fft;
 
 	for (size_t i = 0; i < numFrames / delta; i++){
 		double power = computePower(i*delta, delta);
@@ -270,11 +283,11 @@ CAudio::CAudio(const string& filename) : CSignal(filename){
 				end = delta + i*delta + backSamples - hopeCount;
 				if (end - start > minSamples){
 					start = max(0, (int)(start-frontSamples));
-					if (end-start < CFFT::sGetFFTsize()){
-						end += CFFT::sGetFFTsize() - end + start + 1;
+					if (end-start < FFT_SIZE){
+						end += FFT_SIZE - end + start + 1;
 					}
 					end = min (end + backSamples, (int)numFrames);
-					samples.push_back(std::make_unique<CSample>(frames.data() + start, end-start, sampleRate, ++id, start, end, birdid));
+					samples.push_back(std::make_unique<CSample>(frames.data() + start, end-start, sampleRate, ++id, start, end, birdid, &fft));
 					Dprintf3("Wycinam: %fs-%fs\n", 1.0*start/sampleRate, 1.0*end/sampleRate);
 				}
 				start = -1;
@@ -283,8 +296,8 @@ CAudio::CAudio(const string& filename) : CSignal(filename){
 		}
 	}
 	if (start != -1){
-		if ((int)numFrames - start >= CFFT::sGetFFTsize()){
-			samples.push_back(std::make_unique<CSample>(frames.data() + start, end-start, sampleRate, ++id, start, end, birdid));
+		if ((int)numFrames - start >= FFT_SIZE){
+			samples.push_back(std::make_unique<CSample>(frames.data() + start, end-start, sampleRate, ++id, start, end, birdid, &fft));
 		}
 	}
 	Dprintf2("Sample: %s\n", filename.c_str());
@@ -342,29 +355,31 @@ void CFFT::compute(double * _in, SFrequencies& _out){
 	}
 }
 
-void computeFrequencies(double * _in, std::vector<SFrequencies>& _out, std::vector<OrigFrequencies>& _oOut, int n){
+void computeFrequencies(CFFT& fft, double * _in, std::vector<SFrequencies>& _out, std::vector<OrigFrequencies>& _oOut, int n){
 	int sfCount = (n-FFT_SIZE)/SEGMENT_FRAMES + 1;
 	_out.resize(sfCount);
 	_oOut.resize(sfCount);
 	for (int i=0; i<sfCount; ++i) {
-		CFFT::sCompute(_in+i*SEGMENT_FRAMES, _out[i], _oOut[i]);
+		fft.compute(_in+i*SEGMENT_FRAMES, _out[i], _oOut[i]);
 	}
 }
 
-void computeFrequencies(double * _in, std::vector<SFrequencies>& _out, int n){
+void computeFrequencies(CFFT& fft, double * _in, std::vector<SFrequencies>& _out, int n){
 	int sfCount = (n-FFT_SIZE)/SEGMENT_FRAMES + 1;
 	_out.resize(sfCount);
 	for (int i=0; i<sfCount; ++i) {
-		CFFT::sCompute(_in+i*SEGMENT_FRAMES, _out[i]);
+		fft.compute(_in+i*SEGMENT_FRAMES, _out[i]);
 	}
 }
 
-void CFFT::sCompute(double * in, SFrequencies& out, OrigFrequencies& oOut){
-	return getInstance().compute(in, out, oOut);
+void computeFrequencies(double * _in, std::vector<SFrequencies>& _out, std::vector<OrigFrequencies>& _oOut, int n){
+	CFFT fft;
+	computeFrequencies(fft, _in, _out, _oOut, n);
 }
 
-void CFFT::sCompute(double * in, SFrequencies& out){
-	return getInstance().compute(in, out);
+void computeFrequencies(double * _in, std::vector<SFrequencies>& _out, int n){
+	CFFT fft;
+	computeFrequencies(fft, _in, _out, n);
 }
 
 SFrequencies::SFrequencies(){

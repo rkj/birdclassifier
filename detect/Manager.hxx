@@ -31,13 +31,11 @@ static const uint BUFSIZE = 1097152;
 
 class CManager {
 	public:
+		explicit CManager(CFFT& fft);
+		~CManager();
 		CSample* getSample();
 		void addFile(const std::string& filename);
-
-		static CManager& getInstance(){
-			static CManager manager;
-			return manager;
-		}
+		void resetQueue();
 		void setSavePrefix(const std::string& prefix){
 			savePrefix = prefix;
 			lastId = 0;
@@ -65,13 +63,12 @@ class CManager {
 		std::unique_ptr<CFile> currFile;
 
 		std::vector<double> buffer;
+		CFFT* fft;
 		double powerCutoff;
 		uint hopeCount;
 		CFilter* filter;
 		CSample* readFile();
 		void tryToSaveSample(CSample* );
-		CManager();
-		~CManager();
 		uint lastId;
 		std::string savePrefix;
 };
