@@ -75,17 +75,14 @@ Bird Species Classifier is a cross-platform C++/Qt application that identifies b
 
 ```bash
 # Install dependencies
-sudo apt-get install qt4-dev-tools libsndfile1-dev libfftw3-dev libasound2-dev
+sudo apt-get install -y bazel libsndfile1-dev libfftw3-dev libasound2-dev librtaudio-dev
 
-# Build
-qmake
-make
+# Build and test
+bazel build //:bsc_cli
+bazel test //tests:audio_tests
 
-# Run GUI mode
-./bin/BSC
-
-# Run batch mode
-./bin/BSC -learning learning_data/ audio_file.wav
+# Run CLI mode
+./bazel-bin/bsc_cli -h
 ```
 
 See [INSTALL.md](INSTALL.md) for detailed platform-specific instructions.
@@ -162,8 +159,6 @@ The application combines digital signal processing, pattern recognition, and int
 #### Build Tools
 - **gcc/g++** - C++ compiler with C++98 support minimum
 - **Bazel** - Preferred build and test runner
-- **qmake** - Qt build tool
-- **make** - Build automation
 
 ---
 
@@ -174,13 +169,7 @@ bazel build //:bsc_cli
 bazel test //tests:audio_tests
 ```
 
-### GUI Build (Qt, CMake)
-
-```bash
-cmake --preset gui
-cmake --build --preset gui
-./build/gui/bin/BSC
-```
+Note: The Qt GUI is not available in the Bazel-only workflow yet.
 
 ## Installation
 
@@ -194,24 +183,18 @@ For detailed installation instructions for your platform, see [INSTALL.md](INSTA
 ```bash
 # Install dependencies
 sudo apt-get update
-sudo apt-get install -y build-essential cmake bazel \
-                     qt6-base-dev qt6-charts-dev \
+sudo apt-get install -y build-essential bazel \
                      libsndfile1-dev libfftw3-dev libasound2-dev librtaudio-dev
 
 # Clone repository
 git clone https://github.com/yourusername/birdclassifier.git
 cd birdclassifier
 
-# Build CLI and tests
+# Build and test
 bazel build //:bsc_cli
 bazel test //tests:audio_tests
 
-# Build GUI
-cmake --preset gui
-cmake --build --preset gui
-
 # Run
-./build/gui/bin/BSC
 ./bazel-bin/bsc_cli -h
 ```
 </details>
@@ -221,21 +204,11 @@ cmake --build --preset gui
 
 ```bash
 # Install dependencies (using Homebrew)
-brew install bazel cmake qt6 libsndfile fftw rtaudio
+brew install bazel libsndfile fftw rtaudio
 
-# Ensure CMake can find Qt6
-export CMAKE_PREFIX_PATH="$(brew --prefix qt6)"
-
-# Build CLI and tests
+# Build and test
 bazel build //:bsc_cli
 bazel test //tests:audio_tests
-
-# Build GUI
-cmake --preset gui
-cmake --build --preset gui
-
-# Run GUI
-./build/gui/bin/BSC.app/Contents/MacOS/BSC
 
 # Run CLI
 ./bazel-bin/bsc_cli -h
@@ -245,15 +218,13 @@ cmake --build --preset gui
 <details>
 <summary><b>Windows (MinGW)</b></summary>
 
-1. Install Bazel and CMake
-2. Install Qt6 plus libsndfile, FFTW3, and RtAudio development libraries
+1. Install Bazel
+2. Install libsndfile, FFTW3, and RtAudio development libraries
 3. Run:
 ```cmd
 bazel build //:bsc_cli
 bazel test //tests:audio_tests
-cmake --preset gui
-cmake --build --preset gui
-build\gui\bin\BSC.exe
+bazel-bin\bsc_cli.exe -h
 ```
 </details>
 

@@ -7,15 +7,14 @@ Complete installation instructions for Bird Species Classifier (BSC) on Linux, m
 ## Table of Contents
 
 1. [Quick Install](#quick-install)
-2. [Linux Installation](#linux-installation)
-3. [macOS Installation](#macos-installation)
-4. [Windows Installation](#windows-installation)
-5. [Build Configuration](#build-configuration)
-6. [Bazel Build (Preferred)](#bazel-build-preferred)
-7. [CMake Build (Legacy)](#cmake-build-legacy)
-8. [Running Tests](#running-tests)
-9. [Troubleshooting](#troubleshooting)
-10. [Verification](#verification)
+2. [Bazel Build (Required)](#bazel-build-required)
+3. [Linux Installation](#linux-installation)
+4. [macOS Installation](#macos-installation)
+5. [Windows Installation](#windows-installation)
+6. [Build Configuration](#build-configuration)
+7. [Running Tests](#running-tests)
+8. [Troubleshooting](#troubleshooting)
+9. [Verification](#verification)
 
 ---
 
@@ -33,10 +32,10 @@ Choose your platform:
 
 ---
 
-## Bazel Build (Preferred)
+## Bazel Build (Required)
 
-The Bazel build targets the CLI and unit tests for deterministic builds. The Qt GUI
-remains supported via CMake while Bazel Qt integration is added.
+Bazel is the single supported build system. The CLI and tests are built with Bazel.
+The Qt GUI is not available in the Bazel-only workflow yet.
 
 ### Install Bazel
 
@@ -54,21 +53,6 @@ bazel build //:bsc_cli
 bazel test //tests:audio_tests
 ```
 
-### Build GUI (Qt) with CMake
-
-```bash
-cmake --preset gui
-cmake --build --preset gui
-./build/gui/bin/BSC
-```
-
----
-
-## CMake Build (Legacy)
-
-CMake builds remain supported for the GUI and platform-specific workflows. See the
-platform sections below for details.
-
 ---
 
 ## Linux Installation
@@ -82,56 +66,30 @@ platform sections below for details.
 sudo apt-get update
 
 # Install build tools
-sudo apt-get install -y build-essential git
+sudo apt-get install -y build-essential git bazel
 
 # Install required development libraries
 sudo apt-get install -y \
-    qt6-base-dev \
-    qt6-charts-dev \
     libsndfile1-dev \
     libfftw3-dev \
     librtaudio-dev \
     libasound2-dev \
     libpthread-stubs0-dev
-
-# Install CMake
-# Note: CMake 3.21+ is required for 'cmake --preset'.
-# If your distribution provides an older version, install via snap or pip,
-# or use the manual build instructions below.
-sudo apt-get install -y cmake
 ```
 
-#### Build and Install
-
-**Option 1: Using CMake Presets (Recommended, requires CMake 3.21+)**
+#### Build and Run
 
 ```bash
 # Clone the repository
 git clone https://github.com/yourusername/birdclassifier.git
 cd birdclassifier
 
-# Configure and build
-cmake --preset gui
-cmake --build --preset gui
-```
+# Build CLI and tests
+bazel build //:bsc_cli
+bazel test //tests:audio_tests
 
-**Option 2: Manual CMake Configuration (For CMake < 3.21)**
-
-```bash
-mkdir build
-cd build
-cmake -DBUILD_GUI=ON ..
-make -j$(nproc)
-```
-
-#### Run
-
-```bash
-# Run from build directory
-./build/gui/bin/BSC
-
-# Or for CLI mode
-./build/gui/bin/BSC -h
+# Run CLI
+./bazel-bin/bsc_cli -h
 ```
 
 ---
@@ -146,25 +104,20 @@ sudo dnf groupinstall "Development Tools"
 
 # Install required development libraries
 sudo dnf install -y \
-    qt6-qtbase-devel \
-    qt6-qtcharts-devel \
+    bazel \
     libsndfile-devel \
     fftw-devel \
     rtaudio-devel \
-    alsa-lib-devel \
-    cmake
+    alsa-lib-devel
 ```
 
-#### Build
+#### Build and Run
 
 ```bash
 cd birdclassifier
-# If CMake >= 3.21:
-cmake --preset gui
-cmake --build --preset gui
-
-# If CMake < 3.21:
-# mkdir build && cd build && cmake -DBUILD_GUI=ON .. && make -j$(nproc)
+bazel build //:bsc_cli
+bazel test //tests:audio_tests
+./bazel-bin/bsc_cli -h
 ```
 
 ---
@@ -176,15 +129,16 @@ cmake --build --preset gui
 ```bash
 # Install required packages
 sudo pacman -Syu
-sudo pacman -S --needed base-devel git qt6-base qt6-charts libsndfile fftw alsa-lib cmake rtaudio
+sudo pacman -S --needed base-devel git bazel libsndfile fftw alsa-lib rtaudio
 ```
 
-#### Build
+#### Build and Run
 
 ```bash
 cd birdclassifier
-cmake --preset gui
-cmake --build --preset gui
+bazel build //:bsc_cli
+bazel test //tests:audio_tests
+./bazel-bin/bsc_cli -h
 ```
 
 ---
@@ -193,9 +147,7 @@ cmake --build --preset gui
 
 **General requirements**:
 - GCC/G++ compiler with C++17 support (GCC 7+)
-- CMake 3.21+ (for presets) or 3.16+ (manual build)
-- Qt6 development files (qt6-base)
-- Qt6 Charts module
+- Bazel
 - RtAudio development files (>= 6.0)
 - libsndfile development files
 - FFTW3 development files
@@ -220,34 +172,18 @@ xcode-select --install
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
 
-3. **Install Dependencies**:
+3. **Install dependencies**:
 ```bash
-# Install Qt6 and other dependencies
-brew install cmake qt6 libsndfile fftw rtaudio
-
-# Link Qt6 (if necessary, or set CMAKE_PREFIX_PATH)
-# Usually CMake finds it automatically if installed via brew
+brew install bazel libsndfile fftw rtaudio
 ```
 
-#### Build
+#### Build and Run
 
 ```bash
 cd birdclassifier
-
-# Option 1: Presets (if CMake >= 3.21)
-cmake --preset gui
-cmake --build --preset gui
-
-# Option 2: Manual
-mkdir build && cd build
-cmake -DBUILD_GUI=ON -DCMAKE_PREFIX_PATH=$(brew --prefix qt6) ..
-make -j$(sysctl -n hw.ncpu)
-```
-
-#### Run
-
-```bash
-./build/gui/bin/BSC.app/Contents/MacOS/BSC
+bazel build //:bsc_cli
+bazel test //tests:audio_tests
+./bazel-bin/bsc_cli -h
 ```
 
 ---
@@ -256,60 +192,49 @@ make -j$(sysctl -n hw.ncpu)
 
 ### Prerequisites
 
-1. **Install Qt6**:
-   - Download the Qt Online Installer from [qt.io](https://www.qt.io/download).
-   - Install **Qt 6.x** for your compiler (e.g., MinGW 11.2.0 64-bit or MSVC 2019/2022).
+1. **Install Bazel**:
+   - Install Bazel from https://bazel.build/install
+2. **Install Dependencies**:
+   - Install libsndfile, FFTW3, and RtAudio development libraries for your toolchain.
 
-2. **Install CMake**:
-   - Install CMake 3.21 or later from [cmake.org](https://cmake.org/download/).
+### Build
 
-3. **Install Dependencies**:
-   - **libsndfile**, **fftw3**, **rtaudio**, and **Qt6** are required.
-   - Install these via your preferred package manager or prebuilt binaries.
-
-### Build using Command Line
-
-1. Open your compiler environment (e.g., "Qt 6.x (MinGW) Terminal" or "x64 Native Tools Command Prompt for VS 2022").
-
-2. Navigate to source:
-   ```cmd
-   cd birdclassifier
-   ```
-
-3. Build:
-   ```cmd
-   cmake --preset gui
-   cmake --build --preset gui
-   ```
-
-   *Note: You may need to set `CMAKE_PREFIX_PATH` to your Qt installation if not found.*
+```cmd
+cd birdclassifier
+bazel build //:bsc_cli
+bazel test //tests:audio_tests
+bazel-bin\bsc_cli.exe -h
+```
 
 ---
 
 ## Build Configuration
 
-The project uses `CMakePresets.json` to define standard build configurations:
+Bazel targets:
+- `//:bsc_cli` - CLI binary
+- `//tests:audio_tests` - unit tests
 
-- **default**: No GUI, only library and tests (Debug).
-- **gui**: Build with Qt6 GUI (Debug).
-- **release**: Build with Qt6 GUI (Release, Optimized).
+---
 
-To list available presets:
+## Running Tests
+
 ```bash
-cmake --list-presets
+bazel test //tests:audio_tests
 ```
+
+---
 
 ## Troubleshooting
 
-### CMake Error: Unrecognized "version" field
-This error occurs if your CMake version is older than 3.21. `CMakePresets.json` uses version 3 schema which requires CMake 3.21+.
+### Missing system libraries
 
-**Solution:**
-- Upgrade CMake to 3.21 or newer.
-- OR use the manual build method:
-  ```bash
-  mkdir build
-  cd build
-  cmake -DBUILD_GUI=ON ..
-  make
-  ```
+If Bazel fails to link, ensure the development packages for libsndfile, FFTW3,
+RtAudio, and ALSA are installed for your platform.
+
+---
+
+## Verification
+
+```bash
+./bazel-bin/bsc_cli ~/test.mp3
+```
