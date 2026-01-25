@@ -62,7 +62,7 @@ void CEnergyDraw::updateSignal(vector<double>& values){
 }
 
 void CEnergyDraw::paintEvent(QPaintEvent *event){
-	QtCharts::QChartView::paintEvent(event);
+	QChartView::paintEvent(event);
 }
 
 void CEnergyDraw::changeViewRegion(int s, int e){
@@ -84,12 +84,12 @@ void CEnergyDraw::init(){
 	viewRegion.end = -1;
 	changes = true;
 	cutOff = 0;
-	chart = new QtCharts::QChart();
-	series = new QtCharts::QLineSeries(chart);
-	cutoffSeries = new QtCharts::QLineSeries(chart);
+	chart = new QChart();
+	series = new QLineSeries(chart);
+	cutoffSeries = new QLineSeries(chart);
 	cutoffSeries->setColor(Qt::red);
-	axisX = new QtCharts::QValueAxis(chart);
-	axisY = new QtCharts::QValueAxis(chart);
+	axisX = new QValueAxis(chart);
+	axisY = new QValueAxis(chart);
 	axisX->setTitleText("Time (s)");
 	axisY->setTitleText("Power (dB)");
 	axisY->setRange(0.0, 125.0);

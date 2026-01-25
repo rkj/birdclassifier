@@ -43,9 +43,6 @@
    </item>
    <item>
     <widget class="CEnergyDraw" name="energy" >
-     <property name="text" >
-      <string>TextLabel</string>
-     </property>
     </widget>
    </item>
   </layout>

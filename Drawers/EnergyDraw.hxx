@@ -28,7 +28,7 @@
 #include <vector>
 
 const int DELTA = 64;
-class CEnergyDraw : public QtCharts::QChartView {
+class CEnergyDraw : public QChartView {
 	Q_OBJECT
 	public:
 		static const int LEGEND_WIDTH = 50;
@@ -38,10 +38,10 @@ class CEnergyDraw : public QtCharts::QChartView {
 		CEnergyDraw(){
 			init();
 		}
-		CEnergyDraw(QWidget* w) : QtCharts::QChartView(w) {
+		CEnergyDraw(QWidget* w) : QChartView(w) {
 			init();
 		}
-		CEnergyDraw(QGroupBox* &gb) : QtCharts::QChartView(gb){
+		CEnergyDraw(QGroupBox* &gb) : QChartView(gb){
 			init();
 		}
 		~CEnergyDraw();
@@ -82,11 +82,11 @@ class CEnergyDraw : public QtCharts::QChartView {
 		void refreshSeries();
 		void refreshCutoff();
 		std::vector<double> powers;
-		QtCharts::QChart* chart;
-		QtCharts::QLineSeries* series;
-		QtCharts::QLineSeries* cutoffSeries;
-		QtCharts::QValueAxis* axisX;
-		QtCharts::QValueAxis* axisY;
+		QChart* chart;
+		QLineSeries* series;
+		QLineSeries* cutoffSeries;
+		QValueAxis* axisX;
+		QValueAxis* axisY;
 		sRegion viewRegion;
 		int cutOff;
 		std::list<sRegion> selection;
