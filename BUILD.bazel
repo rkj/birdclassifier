@@ -1,29 +1,302 @@
 package(default_visibility = ["//visibility:public"])
 
+CORE_SRCS = [
+    "detect/Audio.cpp",
+    "detect/detect.cpp",
+    "detect/Files.cpp",
+    "detect/Filter.cpp",
+    "detect/Manager.cpp",
+]
+
+CORE_HDRS = [
+    "detect/Audio.hxx",
+    "detect/detect.hxx",
+    "detect/Files.hxx",
+    "detect/Filter.hxx",
+    "detect/Manager.hxx",
+]
+
+CORE_LINKOPTS = [
+    "-lsndfile",
+    "-lfftw3",
+    "-lrtaudio",
+    "-lpthread",
+    "-lm",
+]
+
+QT_COPTS = [
+    "-std=c++17",
+    "-I.",
+    "-IDrawers",
+    "-Idetect",
+    "-I/usr/include/x86_64-linux-gnu/qt6",
+    "-I/usr/include/x86_64-linux-gnu/qt6/QtCore",
+    "-I/usr/include/x86_64-linux-gnu/qt6/QtGui",
+    "-I/usr/include/x86_64-linux-gnu/qt6/QtWidgets",
+    "-I/usr/include/x86_64-linux-gnu/qt6/QtCharts",
+    "-I/usr/include/x86_64-linux-gnu/qt6/QtDesigner",
+    "-I/usr/include/x86_64-linux-gnu/qt6/QtUiPlugin",
+    "-I/usr/include/rtaudio",
+]
+
+QT_DEFINES = [
+    "-DQT_CORE_LIB",
+    "-DQT_GUI_LIB",
+    "-DQT_WIDGETS_LIB",
+    "-DQT_CHARTS_LIB",
+]
+
+QT_LINKOPTS = [
+    "-lQt6Charts",
+    "-lQt6Widgets",
+    "-lQt6Gui",
+    "-lQt6Core",
+]
+
+QT_MOC_FLAGS = "-I. -IDrawers -Idetect -I/usr/include/x86_64-linux-gnu/qt6 -I/usr/include/x86_64-linux-gnu/qt6/QtCore -I/usr/include/x86_64-linux-gnu/qt6/QtGui -I/usr/include/x86_64-linux-gnu/qt6/QtWidgets -I/usr/include/x86_64-linux-gnu/qt6/QtCharts -I/usr/include/x86_64-linux-gnu/qt6/QtDesigner -I/usr/include/x86_64-linux-gnu/qt6/QtUiPlugin -I/usr/include/rtaudio -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB -DQT_CHARTS_LIB"
+
 cc_library(
     name = "bsc_core",
-    srcs = [
-        "detect/Audio.cpp",
-        "detect/detect.cpp",
-        "detect/Files.cpp",
-        "detect/Filter.cpp",
-        "detect/Manager.cpp",
-    ],
-    hdrs = [
-        "detect/Audio.hxx",
-        "detect/detect.hxx",
-        "detect/Files.hxx",
-        "detect/Filter.hxx",
-        "detect/Manager.hxx",
-    ],
+    srcs = CORE_SRCS,
+    hdrs = CORE_HDRS,
     copts = ["-std=c++17"],
-    linkopts = [
-        "-lsndfile",
-        "-lfftw3",
-        "-lrtaudio",
-        "-lpthread",
-        "-lm",
+    linkopts = CORE_LINKOPTS,
+)
+
+cc_library(
+    name = "bsc_core_qt",
+    srcs = CORE_SRCS,
+    hdrs = CORE_HDRS,
+    copts = QT_COPTS + QT_DEFINES,
+    linkopts = CORE_LINKOPTS,
+)
+
+# UI headers
+
+genrule(
+    name = "ui_MainWindow",
+    srcs = ["MainWindow.ui"],
+    outs = ["ui_MainWindow.h"],
+    cmd = "/usr/lib/qt6/libexec/uic $(location MainWindow.ui) -o $@",
+)
+
+genrule(
+    name = "ui_SettingsDialog",
+    srcs = ["SettingsDialog.ui"],
+    outs = ["ui_SettingsDialog.h"],
+    cmd = "/usr/lib/qt6/libexec/uic $(location SettingsDialog.ui) -o $@",
+)
+
+genrule(
+    name = "ui_LearningDialog",
+    srcs = ["LearningDialog.ui"],
+    outs = ["ui_LearningDialog.h"],
+    cmd = "/usr/lib/qt6/libexec/uic $(location LearningDialog.ui) -o $@",
+)
+
+genrule(
+    name = "ui_ComparisonWindow",
+    srcs = ["ComparisonWindow.ui"],
+    outs = ["ui_ComparisonWindow.h"],
+    cmd = "/usr/lib/qt6/libexec/uic $(location ComparisonWindow.ui) -o $@",
+)
+
+genrule(
+    name = "ui_EnergyDraw",
+    srcs = ["Drawers/EnergyDraw.ui"],
+    outs = ["ui_EnergyDraw.h"],
+    cmd = "/usr/lib/qt6/libexec/uic $(location Drawers/EnergyDraw.ui) -o $@",
+)
+
+genrule(
+    name = "ui_SignalDraw",
+    srcs = ["Drawers/SignalDraw.ui"],
+    outs = ["ui_SignalDraw.h"],
+    cmd = "/usr/lib/qt6/libexec/uic $(location Drawers/SignalDraw.ui) -o $@",
+)
+
+genrule(
+    name = "ui_SpectroDraw",
+    srcs = ["Drawers/SpectroDraw.ui"],
+    outs = ["ui_SpectroDraw.h"],
+    cmd = "/usr/lib/qt6/libexec/uic $(location Drawers/SpectroDraw.ui) -o $@",
+)
+
+filegroup(
+    name = "ui_headers",
+    srcs = [
+        ":ui_MainWindow",
+        ":ui_SettingsDialog",
+        ":ui_LearningDialog",
+        ":ui_ComparisonWindow",
+        ":ui_EnergyDraw",
+        ":ui_SignalDraw",
+        ":ui_SpectroDraw",
     ],
+)
+
+# MOC sources
+
+genrule(
+    name = "moc_MainWindow",
+    srcs = ["MainWindow.hxx"],
+    outs = ["moc_MainWindow.cpp"],
+    cmd = "/usr/lib/qt6/libexec/moc " + QT_MOC_FLAGS + " $(location MainWindow.hxx) -o $@",
+)
+
+genrule(
+    name = "moc_SettingsDialog",
+    srcs = ["SettingsDialog.hxx"],
+    outs = ["moc_SettingsDialog.cpp"],
+    cmd = "/usr/lib/qt6/libexec/moc " + QT_MOC_FLAGS + " $(location SettingsDialog.hxx) -o $@",
+)
+
+genrule(
+    name = "moc_LearningDialog",
+    srcs = ["LearningDialog.hxx"],
+    outs = ["moc_LearningDialog.cpp"],
+    cmd = "/usr/lib/qt6/libexec/moc " + QT_MOC_FLAGS + " $(location LearningDialog.hxx) -o $@",
+)
+
+genrule(
+    name = "moc_ComparisonWindow",
+    srcs = ["ComparisonWindow.hxx"],
+    outs = ["moc_ComparisonWindow.cpp"],
+    cmd = "/usr/lib/qt6/libexec/moc " + QT_MOC_FLAGS + " $(location ComparisonWindow.hxx) -o $@",
+)
+
+genrule(
+    name = "moc_MyListView",
+    srcs = ["MyListView.hxx"],
+    outs = ["moc_MyListView.cpp"],
+    cmd = "/usr/lib/qt6/libexec/moc " + QT_MOC_FLAGS + " $(location MyListView.hxx) -o $@",
+)
+
+genrule(
+    name = "moc_SpectroDraw",
+    srcs = ["Drawers/SpectroDraw.hxx"],
+    outs = ["moc_SpectroDraw.cpp"],
+    cmd = "/usr/lib/qt6/libexec/moc " + QT_MOC_FLAGS + " $(location Drawers/SpectroDraw.hxx) -o $@",
+)
+
+genrule(
+    name = "moc_SignalDraw",
+    srcs = ["Drawers/SignalDraw.hxx"],
+    outs = ["moc_SignalDraw.cpp"],
+    cmd = "/usr/lib/qt6/libexec/moc " + QT_MOC_FLAGS + " $(location Drawers/SignalDraw.hxx) -o $@",
+)
+
+genrule(
+    name = "moc_EnergyDraw",
+    srcs = ["Drawers/EnergyDraw.hxx"],
+    outs = ["moc_EnergyDraw.cpp"],
+    cmd = "/usr/lib/qt6/libexec/moc " + QT_MOC_FLAGS + " $(location Drawers/EnergyDraw.hxx) -o $@",
+)
+
+genrule(
+    name = "moc_DrawPlugin",
+    srcs = ["Drawers/DrawPlugin.hxx"],
+    outs = ["moc_DrawPlugin.cpp"],
+    cmd = "/usr/lib/qt6/libexec/moc " + QT_MOC_FLAGS + " $(location Drawers/DrawPlugin.hxx) -o $@",
+)
+
+genrule(
+    name = "moc_Spectrogram",
+    srcs = ["Drawers/Spectrogram.hxx"],
+    outs = ["moc_Spectrogram.cpp"],
+    cmd = "/usr/lib/qt6/libexec/moc " + QT_MOC_FLAGS + " $(location Drawers/Spectrogram.hxx) -o $@",
+)
+
+genrule(
+    name = "moc_AudioDraw",
+    srcs = ["Drawers/AudioDraw.hxx"],
+    outs = ["moc_AudioDraw.cpp"],
+    cmd = "/usr/lib/qt6/libexec/moc " + QT_MOC_FLAGS + " $(location Drawers/AudioDraw.hxx) -o $@",
+)
+
+genrule(
+    name = "moc_EnergyDrawWidget",
+    srcs = ["Drawers/EnergyDrawWidget.hxx"],
+    outs = ["moc_EnergyDrawWidget.cpp"],
+    cmd = "/usr/lib/qt6/libexec/moc " + QT_MOC_FLAGS + " $(location Drawers/EnergyDrawWidget.hxx) -o $@",
+)
+
+filegroup(
+    name = "moc_sources",
+    srcs = [
+        ":moc_MainWindow",
+        ":moc_SettingsDialog",
+        ":moc_LearningDialog",
+        ":moc_ComparisonWindow",
+        ":moc_MyListView",
+        ":moc_SpectroDraw",
+        ":moc_SignalDraw",
+        ":moc_EnergyDraw",
+        ":moc_DrawPlugin",
+        ":moc_Spectrogram",
+        ":moc_AudioDraw",
+        ":moc_EnergyDrawWidget",
+    ],
+)
+
+# Qt resources
+
+genrule(
+    name = "qrc_Images",
+    srcs = ["Images.qrc"] + glob(["img/*.png"]),
+    outs = ["qrc_Images.cpp"],
+    cmd = "/usr/lib/qt6/libexec/rcc -name Images $(location Images.qrc) -o $@",
+)
+
+filegroup(
+    name = "gui_generated",
+    srcs = [
+        ":ui_headers",
+        ":moc_sources",
+        ":qrc_Images",
+    ],
+)
+
+GUI_SRCS = [
+    "MainWindow.cpp",
+    "SettingsDialog.cpp",
+    "LearningDialog.cpp",
+    "ComparisonWindow.cpp",
+    "Drawers/AudioDraw.cpp",
+    "Drawers/EnergyDraw.cpp",
+    "Drawers/EnergyDrawWidget.cpp",
+    "Drawers/SignalDraw.cpp",
+    "Drawers/SpectroDraw.cpp",
+    "Drawers/Spectrogram.cpp",
+]
+
+GUI_HDRS = [
+    "MainWindow.hxx",
+    "SettingsDialog.hxx",
+    "LearningDialog.hxx",
+    "ComparisonWindow.hxx",
+    "MyListView.hxx",
+    "Drawers/AudioDraw.hxx",
+    "Drawers/EnergyDraw.hxx",
+    "Drawers/EnergyDrawWidget.hxx",
+    "Drawers/SignalDraw.hxx",
+    "Drawers/SpectroDraw.hxx",
+    "Drawers/Spectrogram.hxx",
+    "Drawers/DrawPlugin.hxx",
+]
+
+cc_library(
+    name = "bsc_gui_lib",
+    srcs = GUI_SRCS + [":moc_sources", ":qrc_Images"],
+    hdrs = GUI_HDRS + [":ui_headers"],
+    copts = QT_COPTS + QT_DEFINES,
+    deps = [":bsc_core_qt"],
+)
+
+cc_binary(
+    name = "bsc_gui",
+    deps = [":bsc_gui_lib"],
+    linkopts = QT_LINKOPTS,
 )
 
 cc_binary(

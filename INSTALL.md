@@ -34,8 +34,9 @@ Choose your platform:
 
 ## Bazel Build (Required)
 
-Bazel is the single supported build system. The CLI and tests are built with Bazel.
-The Qt GUI is not available in the Bazel-only workflow yet.
+Bazel is the single supported build system. The CLI and tests are built with Bazel on all platforms.
+The Qt GUI target (`//:bsc_gui`) is currently wired for Debian/Ubuntu-style Qt6 installs
+(`/usr/include/x86_64-linux-gnu/qt6`).
 
 ### Install Bazel
 
@@ -46,10 +47,11 @@ sudo apt-get update
 sudo apt-get install -y bazel
 ```
 
-### Build CLI and Tests
+### Build CLI, Tests, and GUI
 
 ```bash
 bazel build //:bsc_cli
+bazel build //:bsc_gui
 bazel test //tests:audio_tests
 ```
 
@@ -70,6 +72,10 @@ sudo apt-get install -y build-essential git bazel
 
 # Install required development libraries
 sudo apt-get install -y \
+    qt6-base-dev \
+    qt6-charts-dev \
+    qt6-base-dev-tools \
+    qt6-tools-dev \
     libsndfile1-dev \
     libfftw3-dev \
     librtaudio-dev \
@@ -84,12 +90,16 @@ sudo apt-get install -y \
 git clone https://github.com/yourusername/birdclassifier.git
 cd birdclassifier
 
-# Build CLI and tests
+# Build CLI, GUI, and tests
 bazel build //:bsc_cli
+bazel build //:bsc_gui
 bazel test //tests:audio_tests
 
 # Run CLI
 ./bazel-bin/bsc_cli -h
+
+# Run GUI
+./bazel-bin/bsc_gui
 ```
 
 ---
@@ -212,6 +222,7 @@ bazel-bin\bsc_cli.exe -h
 
 Bazel targets:
 - `//:bsc_cli` - CLI binary
+- `//:bsc_gui` - Qt GUI (Debian/Ubuntu Qt6 layout)
 - `//tests:audio_tests` - unit tests
 
 ---

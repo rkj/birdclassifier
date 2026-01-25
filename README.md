@@ -75,14 +75,19 @@ Bird Species Classifier is a cross-platform C++/Qt application that identifies b
 
 ```bash
 # Install dependencies
-sudo apt-get install -y bazel libsndfile1-dev libfftw3-dev libasound2-dev librtaudio-dev
+sudo apt-get install -y bazel qt6-base-dev qt6-charts-dev qt6-base-dev-tools qt6-tools-dev \
+                     libsndfile1-dev libfftw3-dev libasound2-dev librtaudio-dev
 
 # Build and test
 bazel build //:bsc_cli
+bazel build //:bsc_gui
 bazel test //tests:audio_tests
 
 # Run CLI mode
 ./bazel-bin/bsc_cli -h
+
+# Run GUI mode
+./bazel-bin/bsc_gui
 ```
 
 See [INSTALL.md](INSTALL.md) for detailed platform-specific instructions.
@@ -166,10 +171,14 @@ The application combines digital signal processing, pattern recognition, and int
 
 ```bash
 bazel build //:bsc_cli
+bazel build //:bsc_gui
 bazel test //tests:audio_tests
+./bazel-bin/bsc_cli -h
+./bazel-bin/bsc_gui
 ```
 
-Note: The Qt GUI is not available in the Bazel-only workflow yet.
+GUI note: `//:bsc_gui` is currently wired for Debian/Ubuntu Qt6 installs
+(`/usr/include/x86_64-linux-gnu/qt6`).
 
 ## Installation
 
@@ -184,6 +193,7 @@ For detailed installation instructions for your platform, see [INSTALL.md](INSTA
 # Install dependencies
 sudo apt-get update
 sudo apt-get install -y build-essential bazel \
+                     qt6-base-dev qt6-charts-dev qt6-base-dev-tools qt6-tools-dev \
                      libsndfile1-dev libfftw3-dev libasound2-dev librtaudio-dev
 
 # Clone repository
@@ -208,10 +218,12 @@ brew install bazel libsndfile fftw rtaudio
 
 # Build and test
 bazel build //:bsc_cli
+bazel build //:bsc_gui
 bazel test //tests:audio_tests
 
-# Run CLI
+# Run
 ./bazel-bin/bsc_cli -h
+./bazel-bin/bsc_gui
 ```
 </details>
 
