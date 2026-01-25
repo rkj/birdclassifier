@@ -40,20 +40,26 @@ remains supported via CMake while Bazel Qt integration is added.
 
 ### Install Bazel
 
-Use Bazelisk (recommended) or a system Bazel package.
+Install Bazel using your system package manager (example for Ubuntu/Debian):
 
 ```bash
-# From repo root
-mkdir -p tools
-curl -L https://github.com/bazelbuild/bazelisk/releases/download/v1.19.0/bazelisk-linux-amd64 -o tools/bazelisk
-chmod +x tools/bazelisk
+sudo apt-get update
+sudo apt-get install -y bazel
 ```
 
 ### Build CLI and Tests
 
 ```bash
-./tools/bazelisk build //:bsc_cli
-./tools/bazelisk test //tests:audio_tests
+bazel build //:bsc_cli
+bazel test //tests:audio_tests
+```
+
+### Build GUI (Qt) with CMake
+
+```bash
+cmake --preset gui
+cmake --build --preset gui
+./build/gui/bin/BSC
 ```
 
 ---

@@ -161,7 +161,7 @@ The application combines digital signal processing, pattern recognition, and int
 
 #### Build Tools
 - **gcc/g++** - C++ compiler with C++98 support minimum
-- **Bazel/Bazelisk** - Preferred build and test runner
+- **Bazel** - Preferred build and test runner
 - **qmake** - Qt build tool
 - **make** - Build automation
 
@@ -170,8 +170,16 @@ The application combines digital signal processing, pattern recognition, and int
 ### Bazel Build (Preferred)
 
 ```bash
-./tools/bazelisk build //:bsc_cli
-./tools/bazelisk test //tests:audio_tests
+bazel build //:bsc_cli
+bazel test //tests:audio_tests
+```
+
+### GUI Build (Qt, CMake)
+
+```bash
+cmake --preset gui
+cmake --build --preset gui
+./build/gui/bin/BSC
 ```
 
 ## Installation
@@ -186,19 +194,25 @@ For detailed installation instructions for your platform, see [INSTALL.md](INSTA
 ```bash
 # Install dependencies
 sudo apt-get update
-sudo apt-get install build-essential qt4-dev-tools qt4-qmake \
+sudo apt-get install -y build-essential cmake bazel \
+                     qt6-base-dev qt6-charts-dev \
                      libsndfile1-dev libfftw3-dev libasound2-dev librtaudio-dev
 
 # Clone repository
 git clone https://github.com/yourusername/birdclassifier.git
 cd birdclassifier
 
-# Build
-qmake BirdSpeciesClassifier.pro
-make
+# Build CLI and tests
+bazel build //:bsc_cli
+bazel test //tests:audio_tests
+
+# Build GUI
+cmake --preset gui
+cmake --build --preset gui
 
 # Run
-./bin/BSC
+./build/gui/bin/BSC
+./bazel-bin/bsc_cli -h
 ```
 </details>
 
@@ -207,28 +221,39 @@ make
 
 ```bash
 # Install dependencies (using Homebrew)
-brew install qt@4 libsndfile fftw
+brew install bazel cmake qt6 libsndfile fftw rtaudio
 
-# Build
-qmake BirdSpeciesClassifier.pro
-make
+# Ensure CMake can find Qt6
+export CMAKE_PREFIX_PATH="$(brew --prefix qt6)"
 
-# Run
-./bin/BSC
+# Build CLI and tests
+bazel build //:bsc_cli
+bazel test //tests:audio_tests
+
+# Build GUI
+cmake --preset gui
+cmake --build --preset gui
+
+# Run GUI
+./build/gui/bin/BSC.app/Contents/MacOS/BSC
+
+# Run CLI
+./bazel-bin/bsc_cli -h
 ```
 </details>
 
 <details>
 <summary><b>Windows (MinGW)</b></summary>
 
-1. Install MinGW and Qt4
-2. Install libsndfile and FFTW3 development libraries
-3. Update paths in `BirdSpeciesClassifier.pro` (lines 26-28)
-4. Run:
+1. Install Bazel and CMake
+2. Install Qt6 plus libsndfile, FFTW3, and RtAudio development libraries
+3. Run:
 ```cmd
-qmake
-mingw32-make
-bin\BSC.exe
+bazel build //:bsc_cli
+bazel test //tests:audio_tests
+cmake --preset gui
+cmake --build --preset gui
+build\gui\bin\BSC.exe
 ```
 </details>
 
