@@ -78,7 +78,7 @@ class CMemoryFile : public CFile {
 
 class CWaveFile : public CFile {
 	public:
-		CWaveFile(const std::string& filename);
+		explicit CWaveFile(const std::string& filename, bool emitErrors = true);
 		~CWaveFile();
 	protected:
 		void fillBuffer();

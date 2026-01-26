@@ -18,7 +18,13 @@
 */
 
 #include "Files.hxx"
+#include "mpglib/mpglib.h"
+#include <algorithm>
+#include <array>
 #include <climits>
+#include <cctype>
+#include <fstream>
+#include <stdexcept>
 #include <vector>
 #include <memory>
 
@@ -71,11 +77,160 @@ bool CMemoryFile::readPossible(){
 }
 
 
-CWaveFile::CWaveFile(const string& filename) : CFile(filename){
+namespace {
+constexpr int kMp3OutBufferSize = 8192;
+
+bool hasMp3Extension(const string& filename) {
+	auto pos = filename.find_last_of('.');
+	if (pos == string::npos) {
+		return false;
+	}
+	string ext = filename.substr(pos + 1);
+	std::transform(ext.begin(), ext.end(), ext.begin(),
+	               [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+	return ext == "mp3";
+}
+
+size_t skipId3v2(const vector<unsigned char>& data) {
+	if (data.size() < 10) {
+		return 0;
+	}
+	if (data[0] != 'I' || data[1] != 'D' || data[2] != '3') {
+		return 0;
+	}
+	const size_t size = ((data[6] & 0x7f) << 21) |
+	                    ((data[7] & 0x7f) << 14) |
+	                    ((data[8] & 0x7f) << 7) |
+	                    (data[9] & 0x7f);
+	size_t offset = 10 + size;
+	if (data[5] & 0x10) {
+		offset += 10; // footer present
+	}
+	return offset <= data.size() ? offset : 0;
+}
+
+int mp3SampleRateFromIndex(int index) {
+	static const int kRates[] = {44100, 48000, 32000, 22050, 24000, 16000, 11025, 12000, 8000};
+	if (index < 0 || index >= static_cast<int>(sizeof(kRates) / sizeof(kRates[0]))) {
+		return 0;
+	}
+	return kRates[index];
+}
+
+class CBufferFile final : public CFile {
+	public:
+		CBufferFile(vector<double> samples, int sampleRate, const string& filename)
+			: CFile(filename), data(std::move(samples)) {
+			framesCount = static_cast<int>(data.size());
+			readSamples = 0;
+			bufPos = 0;
+			this->sampleRate = static_cast<uint>(sampleRate);
+			channels = 1;
+		}
+
+		double read() override {
+			return data[readSamples++];
+		}
+
+		bool readPossible() override {
+			return readSamples < framesCount;
+		}
+
+	protected:
+		void fillBuffer() override {
+		}
+
+	private:
+		vector<double> data;
+};
+
+unique_ptr<CFile> decodeMp3Fallback(const string& filename) {
+	ifstream file(filename, ios::binary);
+	if (!file) {
+		throw runtime_error("Failed to open MP3 file.");
+	}
+	vector<unsigned char> data((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+	if (data.empty()) {
+		throw runtime_error("Empty MP3 file.");
+	}
+
+	struct Mp3State {
+		mpstr mp{};
+		Mp3State() {
+			InitMP3(&mp);
+		}
+		~Mp3State() {
+			ExitMP3(&mp);
+		}
+	};
+
+	Mp3State state;
+	vector<double> samples;
+	array<char, kMp3OutBufferSize> out{};
+	int sampleRate = 0;
+	int channels = 0;
+	bool haveInfo = false;
+
+	size_t pos = skipId3v2(data);
+	const size_t total = data.size();
+	while (true) {
+		int done = 0;
+		int ret = MP3_NEED_MORE;
+		if (pos < total) {
+			const size_t chunk = min(static_cast<size_t>(16384), total - pos);
+			ret = decodeMP3(&state.mp, reinterpret_cast<char*>(data.data() + pos),
+			                static_cast<int>(chunk), out.data(), kMp3OutBufferSize, &done);
+			pos += chunk;
+		} else {
+			ret = decodeMP3(&state.mp, nullptr, 0, out.data(), kMp3OutBufferSize, &done);
+		}
+
+		if (ret == MP3_ERR) {
+			throw runtime_error("MP3 decode failed.");
+		}
+		if (ret == MP3_OK && done > 0) {
+			if (!haveInfo) {
+				sampleRate = mp3SampleRateFromIndex(state.mp.fr.sampling_frequency);
+				channels = state.mp.fr.stereo;
+				if (sampleRate <= 0 || channels <= 0) {
+					throw runtime_error("MP3 stream metadata unavailable.");
+				}
+				haveInfo = true;
+			}
+
+			const int totalSamples = done / static_cast<int>(sizeof(short));
+			const short* pcm = reinterpret_cast<const short*>(out.data());
+			if (channels == 1) {
+				for (int i = 0; i < totalSamples; ++i) {
+					samples.push_back(static_cast<double>(pcm[i]) / 32768.0);
+				}
+			} else {
+				for (int i = 0; i + channels - 1 < totalSamples; i += channels) {
+					samples.push_back(static_cast<double>(pcm[i]) / 32768.0);
+				}
+			}
+		}
+
+		if (ret == MP3_NEED_MORE && pos >= total) {
+			break;
+		}
+	}
+
+	if (!haveInfo || samples.empty()) {
+		throw runtime_error("No MP3 samples decoded.");
+	}
+
+	return make_unique<CBufferFile>(std::move(samples), sampleRate, filename);
+}
+} // namespace
+
+CWaveFile::CWaveFile(const string& filename, bool emitErrors) : CFile(filename){
 	sf_info.format = 0;
 	file = sf_open(filename.c_str(), SFM_READ, &sf_info);
 	if (!file) {
-		fprintf(stderr, "Error opening file '%s': %s\n", filename.c_str(), sf_strerror(NULL));
+		if (emitErrors) {
+			fprintf(stderr, "Error opening file '%s': %s\n", filename.c_str(), sf_strerror(NULL));
+		}
 		throw exception();
 	}
 	framesCount = sf_info.frames;
@@ -108,7 +263,19 @@ void CWaveFile::fillBuffer(){
 }
 
 std::unique_ptr<CFile> CFileFactory::createCFile(const string& filename){
-	// With libsndfile 1.2.0+, MP3 and other formats are supported transparently.
-	// We use CWaveFile for everything.
-	return std::make_unique<CWaveFile>(filename);
+	if (!hasMp3Extension(filename)) {
+		return std::make_unique<CWaveFile>(filename);
+	}
+
+	try {
+		return std::make_unique<CWaveFile>(filename, false);
+	} catch (const std::exception&) {
+	}
+
+	try {
+		return decodeMp3Fallback(filename);
+	} catch (const std::exception& ex) {
+		fprintf(stderr, "Error opening file '%s': %s\n", filename.c_str(), ex.what());
+		throw exception();
+	}
 }

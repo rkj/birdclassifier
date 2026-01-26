@@ -20,7 +20,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "mpg123.h"
+#include "mpglib/mpg123.h"
 #include "mpglib.h"
 
 /* Global mp .. it's a hack */

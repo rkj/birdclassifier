@@ -18,7 +18,7 @@
 */
 
 
-#include "mpg123.h"
+#include "mpglib/mpg123.h"
 #include "mpglib.h"
 
 char buf[16384];

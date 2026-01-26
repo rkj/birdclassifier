@@ -19,7 +19,7 @@
 
 #include <stdlib.h>
 
-#include "mpg123.h"
+#include "mpglib/mpg123.h"
 
 real decwin[512+32];
 static real cos64[16],cos32[8],cos16[4],cos8[2],cos4[1];

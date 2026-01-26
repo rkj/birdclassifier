@@ -28,7 +28,7 @@
 #include <math.h>
 #include <string.h>
 
-#include "mpg123.h"
+#include "mpglib/mpg123.h"
 #include "mpglib.h"
 
 extern struct mpstr *gmp;

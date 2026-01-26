@@ -26,7 +26,7 @@
  * even for Intel processors.
  */
 
-#include "mpg123.h"
+#include "mpglib/mpg123.h"
 
 static void dct64_1(real *out0,real *out1,real *b1,real *b2,real *samples)
 {

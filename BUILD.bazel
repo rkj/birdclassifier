@@ -6,6 +6,12 @@ CORE_SRCS = [
     "detect/Files.cpp",
     "detect/Filter.cpp",
     "detect/Manager.cpp",
+    "mpglib/common.c",
+    "mpglib/dct64_i386.c",
+    "mpglib/decode_i386.c",
+    "mpglib/interface.c",
+    "mpglib/layer3.c",
+    "mpglib/tabinit.c",
 ]
 
 CORE_HDRS = [
@@ -14,7 +20,7 @@ CORE_HDRS = [
     "detect/Files.hxx",
     "detect/Filter.hxx",
     "detect/Manager.hxx",
-]
+] + glob(["mpglib/*.h"])
 
 CORE_LINKOPTS = [
     "-lsndfile",
@@ -29,6 +35,7 @@ QT_COPTS = [
     "-I.",
     "-IDrawers",
     "-Idetect",
+    "-Impglib",
     "-I/usr/include/x86_64-linux-gnu/qt6",
     "-I/usr/include/x86_64-linux-gnu/qt6/QtCore",
     "-I/usr/include/x86_64-linux-gnu/qt6/QtGui",
@@ -59,7 +66,7 @@ cc_library(
     name = "bsc_core",
     srcs = CORE_SRCS,
     hdrs = CORE_HDRS,
-    copts = ["-std=c++17"],
+    copts = ["-std=c++17", "-I.", "-Impglib"],
     linkopts = CORE_LINKOPTS,
 )
 

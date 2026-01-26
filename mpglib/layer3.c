@@ -18,7 +18,7 @@
 */
 
 #include <stdlib.h>
-#include "mpg123.h"
+#include "mpglib/mpg123.h"
 #include "mpglib.h"
 #include "huffman.h"
 

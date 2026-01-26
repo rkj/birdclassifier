@@ -26,7 +26,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#include "mpg123.h"
+#include "mpglib/mpg123.h"
 
 struct parameter param = { 1 , 1 , 0 , 0 };
 

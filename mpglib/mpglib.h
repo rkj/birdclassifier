@@ -24,7 +24,7 @@ extern "C"
 {
 #endif
 
-#include "mpg123.h"
+#include "mpglib/mpg123.h"
 struct buf {
         unsigned char *pnt;
 	long size;
