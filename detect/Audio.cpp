@@ -264,6 +264,7 @@ CAudio::CAudio(const string& filename) : CSignal(filename){
 	int count = 0;
 	uint birdid = birdIdFromName(getName());
 	size_t numFrames = frames.size();
+	const int fftSize = static_cast<int>(FFT_SIZE);
 	CFFT fft;
 
 	for (size_t i = 0; i < numFrames / delta; i++){
@@ -283,8 +284,8 @@ CAudio::CAudio(const string& filename) : CSignal(filename){
 				end = delta + i*delta + backSamples - hopeCount;
 				if (end - start > minSamples){
 					start = max(0, (int)(start-frontSamples));
-					if (end-start < FFT_SIZE){
-						end += FFT_SIZE - end + start + 1;
+					if (end - start < fftSize){
+						end += fftSize - end + start + 1;
 					}
 					end = min (end + backSamples, (int)numFrames);
 					samples.push_back(std::make_unique<CSample>(frames.data() + start, end-start, sampleRate, ++id, start, end, birdid, &fft));
@@ -296,7 +297,7 @@ CAudio::CAudio(const string& filename) : CSignal(filename){
 		}
 	}
 	if (start != -1){
-		if ((int)numFrames - start >= FFT_SIZE){
+		if (static_cast<int>(numFrames) - start >= fftSize){
 			samples.push_back(std::make_unique<CSample>(frames.data() + start, end-start, sampleRate, ++id, start, end, birdid, &fft));
 		}
 	}
