@@ -21,6 +21,9 @@
 #include "mpglib/mpglib.h"
 #include <algorithm>
 #include <array>
+#include <cstdio>
+#include <cstdarg>
+#include <cstdlib>
 #include <climits>
 #include <cctype>
 #include <fstream>
@@ -79,6 +82,27 @@ bool CMemoryFile::readPossible(){
 
 namespace {
 constexpr int kMp3OutBufferSize = 8192;
+
+bool bscDebugEnabled() {
+	static int enabled = -1;
+	if (enabled < 0) {
+		const char* env = std::getenv("BSC_DEBUG");
+		enabled = (env && *env) ? 1 : 0;
+	}
+	return enabled == 1;
+}
+
+void bscDebugLog(const char* fmt, ...) {
+	if (!bscDebugEnabled()) {
+		return;
+	}
+	va_list args;
+	va_start(args, fmt);
+	std::fprintf(stderr, "BSC: ");
+	std::vfprintf(stderr, fmt, args);
+	std::fprintf(stderr, "\n");
+	va_end(args);
+}
 
 bool hasMp3Extension(const string& filename) {
 	auto pos = filename.find_last_of('.');
@@ -153,6 +177,7 @@ unique_ptr<CFile> decodeMp3Fallback(const string& filename) {
 	if (data.empty()) {
 		throw runtime_error("Empty MP3 file.");
 	}
+	bscDebugLog("MP3 fallback decoder: loaded %zu bytes.", data.size());
 
 	struct Mp3State {
 		mpstr mp{};
@@ -172,6 +197,9 @@ unique_ptr<CFile> decodeMp3Fallback(const string& filename) {
 	bool haveInfo = false;
 
 	size_t pos = skipId3v2(data);
+	if (pos > 0) {
+		bscDebugLog("MP3 fallback decoder: skipped %zu bytes of ID3v2.", pos);
+	}
 	const size_t total = data.size();
 	while (true) {
 		int done = 0;
@@ -195,6 +223,7 @@ unique_ptr<CFile> decodeMp3Fallback(const string& filename) {
 				if (sampleRate <= 0 || channels <= 0) {
 					throw runtime_error("MP3 stream metadata unavailable.");
 				}
+				bscDebugLog("MP3 fallback decoder: sampleRate=%d, channels=%d.", sampleRate, channels);
 				haveInfo = true;
 			}
 
@@ -219,6 +248,7 @@ unique_ptr<CFile> decodeMp3Fallback(const string& filename) {
 	if (!haveInfo || samples.empty()) {
 		throw runtime_error("No MP3 samples decoded.");
 	}
+	bscDebugLog("MP3 fallback decoder: decoded %zu samples.", samples.size());
 
 	return make_unique<CBufferFile>(std::move(samples), sampleRate, filename);
 }
@@ -271,6 +301,7 @@ std::unique_ptr<CFile> CFileFactory::createCFile(const string& filename){
 		return std::make_unique<CWaveFile>(filename, false);
 	} catch (const std::exception&) {
 	}
+	bscDebugLog("libsndfile could not open '%s'; trying MP3 fallback.", filename.c_str());
 
 	try {
 		return decodeMp3Fallback(filename);

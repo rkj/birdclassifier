@@ -24,13 +24,42 @@
 #include <QPushButton>
 #include <QAction>
 #include <QSlider>
+#include <QCoreApplication>
+#include <QElapsedTimer>
+#include <QEventLoop>
 
 #include <algorithm>
+#include <cstdio>
+#include <cstdarg>
+#include <cstdlib>
 
 using namespace std;
 QMutex samplesMutex;
 
 uint play_from, play_to;
+
+namespace {
+bool bscDebugEnabled() {
+	static int enabled = -1;
+	if (enabled < 0) {
+		const char* env = std::getenv("BSC_DEBUG");
+		enabled = (env && *env) ? 1 : 0;
+	}
+	return enabled == 1;
+}
+
+void bscDebugLog(const char* fmt, ...) {
+	if (!bscDebugEnabled()) {
+		return;
+	}
+	va_list args;
+	va_start(args, fmt);
+	std::fprintf(stderr, "BSC: ");
+	std::vfprintf(stderr, fmt, args);
+	std::fprintf(stderr, "\n");
+	va_end(args);
+}
+} // namespace
 
 static vector<CSample*> toRawSamples(const vector<unique_ptr<CSample>>& samples){
 	vector<CSample*> raw;
@@ -218,16 +247,21 @@ extern CFilter MP3Filter;
 void MainWindow::loadClicked(){
 	stopPlaying();
 	try{
+		QElapsedTimer timer;
+		timer.start();
+		bscDebugLog("GUI load: starting.");
 #ifdef __DEBUG__
 		printf("Loading started\n");
 #endif
 		const QString& filename = fileNameEdt->text();
+		bscDebugLog("GUI load: opening '%s'.", filename.toStdString().c_str());
 		loadedFile = CFileFactory::createCFile(filename.toStdString());
 		if (!loadedFile){
 			fprintf(stderr, "Unable to open file [NULL returned]\n");
 			throw exception();
 		}
 		int size = loadedFile->framesLeft();
+		bscDebugLog("GUI load: frames=%d, sampleRate=%u.", size, loadedFile->getSampleRate());
 		size = min (size, 44100*60*5);
 		samples.clear();
 		audioSignalDraw->setSignal(samples);
@@ -242,6 +276,7 @@ void MainWindow::loadClicked(){
 		progressBar->setMinimum(0);
 		progressBar->setMaximum(size);
 		statusBar()->showMessage("Loading file...");
+		QCoreApplication::processEvents(QEventLoop::AllEvents, 5);
 #ifdef __DEBUG__
 		printf("Samples to load: %d\n", size);
 #endif
@@ -249,11 +284,13 @@ void MainWindow::loadClicked(){
 		if (size > 1){
 			samples.resize(size);
 			fSamples.resize(size);
+			const int updateStep = max(1, size / 100);
 			for (int i=0; i<size; i++){
 				samples[i] = loadedFile->read();
 				fSamples[i] = MP3Filter(samples[i]);
-				if (i%(size/100) == 0){
+				if (i % updateStep == 0){
 					progressBar->setValue(i);
+					QCoreApplication::processEvents(QEventLoop::AllEvents, 5);
 				}
 			}
 		} else {
@@ -261,6 +298,9 @@ void MainWindow::loadClicked(){
 			while (loadedFile->readPossible() && samples.size() < MAX_FRAMES){
 				samples.push_back(loadedFile->read());
 				fSamples.push_back(MP3Filter(samples.back()));
+				if (samples.size() % 4096 == 0) {
+					QCoreApplication::processEvents(QEventLoop::AllEvents, 5);
+				}
 #ifdef __DEBUG__
 				if (samples.size() % 44100 == 0){
 					int tmp = samples.size();
@@ -272,6 +312,8 @@ void MainWindow::loadClicked(){
 		progressBar->setMaximum(1);
 		progressBar->setValue(1);
 		statusBar()->showMessage("");
+		QCoreApplication::processEvents(QEventLoop::AllEvents, 5);
+		bscDebugLog("GUI load: decoded %zu samples in %lld ms.", samples.size(), timer.elapsed());
 
 		audioSignalDraw->setSignal(samples);
 		filteredDraw->setSignal(fSamples);
@@ -284,6 +326,7 @@ void MainWindow::loadClicked(){
 		for (int i=0; i<50; ++i){
 			MP3Filter(0.0);
 		}
+		bscDebugLog("GUI load: finished.");
 
 	} catch (const exception& e){
 		QString msg = "File '";
