@@ -27,6 +27,7 @@
 #include <QCoreApplication>
 #include <QElapsedTimer>
 #include <QEventLoop>
+#include <QResource>
 
 #include <algorithm>
 #include <cstdio>
@@ -97,7 +98,7 @@ int MainWindow::playRecordCallback(void *outputBuffer,
 		unsigned int count = std::min(nBufferFrames, remaining);
 		if (out != NULL){
 			for (unsigned int i = 0; i < count; ++i){
-				out[i] = that->fSamples[play_from++];
+				out[i] = that->samples[play_from++];
 			}
 			if (count < nBufferFrames){
 				std::fill(out + count, out + nBufferFrames, 0.0);
@@ -421,8 +422,13 @@ void MainWindow::playSelected(){
 	if (sel.end == -1){
 		sel = audioSignalDraw->getAudioDraw()->getViewRegion();
 	}
-	play_from = sel.start;
-	play_to = sel.end;
+	const int start = max(0, sel.start);
+	const int end = min<int>(sel.end, samples.size());
+	if (end <= start){
+		return;
+	}
+	play_from = static_cast<uint>(start);
+	play_to = static_cast<uint>(end);
 	playing = true;
 	// printf("Play from: %d to %d\n", play_from, play_to);
 	try{
@@ -570,6 +576,7 @@ int main(int argc, char *argv[]) {
 		return 0;
 	}
 	QApplication app(argc, argv);
+	Q_INIT_RESOURCE(Images);
 	MainWindow window;
 	window.show();
 	return app.exec();
