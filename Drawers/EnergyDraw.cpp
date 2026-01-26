@@ -23,6 +23,8 @@
 #include <QCoreApplication>
 #include <QElapsedTimer>
 #include <QEventLoop>
+#include <QList>
+#include <QPointF>
 
 #include <algorithm>
 #include <cstdarg>
@@ -227,16 +229,57 @@ void CEnergyDraw::refreshSeries(){
 		return;
 	}
 	series->clear();
-	const size_t updateStep = std::max<size_t>(1, powers.size() / 100);
-	const size_t logStep = std::max<size_t>(1, powers.size() / 10);
-	for (size_t i = 0; i < powers.size(); ++i){
-		double x = (i * DELTA) / 44100.0;
-		series->append(x, powers[i]);
-		bscProcessEvents(i, updateStep);
-		if (bscDebugEnabled() && i % logStep == 0) {
-			bscDebugLog("Energy draw: series %zu/%zu.", i, powers.size());
+	if (powers.empty()) {
+		return;
+	}
+	size_t startIdx = 0;
+	size_t endIdx = powers.size();
+	if (viewRegion.end > viewRegion.start && viewRegion.start >= 0) {
+		startIdx = static_cast<size_t>(viewRegion.start / DELTA);
+		endIdx = static_cast<size_t>((viewRegion.end + DELTA - 1) / DELTA);
+		endIdx = std::min(endIdx, powers.size());
+		if (startIdx >= endIdx) {
+			startIdx = 0;
+			endIdx = powers.size();
 		}
 	}
+	double plotWidth = width();
+	if (chart != nullptr) {
+		const QRectF area = chart->plotArea();
+		if (area.width() > 1.0) {
+			plotWidth = area.width();
+		}
+	}
+	if (plotWidth < 1.0) {
+		plotWidth = 1.0;
+	}
+	const size_t targetPoints = std::max<size_t>(1, static_cast<size_t>(plotWidth));
+	const size_t totalPoints = endIdx - startIdx;
+	const size_t step = std::max<size_t>(1, totalPoints / targetPoints);
+	const size_t pointCount = (totalPoints + step - 1) / step;
+	if (bscDebugEnabled()) {
+		bscDebugLog("Energy draw: rendering %zu points (step=%zu).", pointCount, step);
+	}
+	QList<QPointF> points;
+	points.reserve(static_cast<int>(pointCount));
+	const size_t updateStep = std::max<size_t>(1, pointCount / 100);
+	const size_t logStep = std::max<size_t>(1, pointCount / 10);
+	size_t pointIndex = 0;
+	for (size_t i = startIdx; i < endIdx; i += step) {
+		double maxValue = powers[i];
+		const size_t bucketEnd = std::min(endIdx, i + step);
+		for (size_t j = i + 1; j < bucketEnd; ++j) {
+			maxValue = std::max(maxValue, powers[j]);
+		}
+		const double x = (i * DELTA) / 44100.0;
+		points.append(QPointF(x, maxValue));
+		bscProcessEvents(pointIndex, updateStep);
+		if (bscDebugEnabled() && pointIndex % logStep == 0) {
+			bscDebugLog("Energy draw: series %zu/%zu.", pointIndex, pointCount);
+		}
+		++pointIndex;
+	}
+	series->replace(points);
 	if (viewRegion.end > viewRegion.start){
 		axisX->setRange(viewRegion.start / 44100.0, viewRegion.end / 44100.0);
 	}
