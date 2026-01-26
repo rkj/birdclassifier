@@ -315,10 +315,23 @@ void MainWindow::loadClicked(){
 		QCoreApplication::processEvents(QEventLoop::AllEvents, 5);
 		bscDebugLog("GUI load: decoded %zu samples in %lld ms.", samples.size(), timer.elapsed());
 
+		QElapsedTimer stageTimer;
+		stageTimer.start();
+		bscDebugLog("GUI load: rendering waveform.");
 		audioSignalDraw->setSignal(samples);
+		bscDebugLog("GUI load: waveform rendered in %lld ms.", stageTimer.elapsed());
+		stageTimer.restart();
+		bscDebugLog("GUI load: rendering filtered waveform.");
 		filteredDraw->setSignal(fSamples);
+		bscDebugLog("GUI load: filtered waveform rendered in %lld ms.", stageTimer.elapsed());
+		stageTimer.restart();
+		bscDebugLog("GUI load: rendering energy plot.");
 		energyDraw->getEnergy()->setSignal(fSamples);
+		bscDebugLog("GUI load: energy plot rendered in %lld ms.", stageTimer.elapsed());
+		stageTimer.restart();
+		bscDebugLog("GUI load: rendering segments.");
 		segmentDraw->setSignal();
+		bscDebugLog("GUI load: segments rendered in %lld ms.", stageTimer.elapsed());
 		spectrogram->setSample(NULL);
 		normalizedSpectrogram->setSample(NULL);
 		bestMatchSpectrogram->setSample(NULL);

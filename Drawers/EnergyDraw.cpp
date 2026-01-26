@@ -20,7 +20,48 @@
 #include "EnergyDraw.hxx"
 #include "../detect/Audio.hxx"
 
+#include <QCoreApplication>
+#include <QElapsedTimer>
+#include <QEventLoop>
+
+#include <algorithm>
+#include <cstdarg>
+#include <cstdio>
+#include <cstdlib>
+
 using namespace std;
+
+namespace {
+bool bscDebugEnabled() {
+	static int enabled = -1;
+	if (enabled < 0) {
+		const char* env = std::getenv("BSC_DEBUG");
+		enabled = (env && *env) ? 1 : 0;
+	}
+	return enabled == 1;
+}
+
+void bscDebugLog(const char* fmt, ...) {
+	if (!bscDebugEnabled()) {
+		return;
+	}
+	va_list args;
+	va_start(args, fmt);
+	std::fprintf(stderr, "BSC: ");
+	std::vfprintf(stderr, fmt, args);
+	std::fprintf(stderr, "\n");
+	va_end(args);
+}
+
+void bscProcessEvents(size_t i, size_t step) {
+	if (step == 0) {
+		return;
+	}
+	if (i % step == 0) {
+		QCoreApplication::processEvents(QEventLoop::AllEvents, 5);
+	}
+}
+} // namespace
 
 double computePower(vector<double> &val, int start, int count){
 	double energy = 0;
@@ -33,14 +74,27 @@ double computePower(vector<double> &val, int start, int count){
 void CEnergyDraw::setSignal(vector<double> &values){
 	powers.clear();
 	powers.resize(values.size()/DELTA);
-	for (uint i=0; i<values.size()/DELTA; i++){
+	QElapsedTimer timer;
+	timer.start();
+	bscDebugLog("Energy draw: computing %zu buckets.", powers.size());
+	const size_t updateStep = std::max<size_t>(1, powers.size() / 100);
+	const size_t logStep = std::max<size_t>(1, powers.size() / 10);
+	for (size_t i=0; i<powers.size(); i++){
 		powers[i] = powerTodB(computePower(values, i*DELTA, DELTA));
-		// printf("[%d]: %g\n", i, powers[i]);
+		bscProcessEvents(i, updateStep);
+		if (bscDebugEnabled() && i % logStep == 0) {
+			bscDebugLog("Energy draw: power %zu/%zu.", i, powers.size());
+		}
 	}
+	bscDebugLog("Energy draw: computed powers in %lld ms.", timer.elapsed());
 	viewRegion.start = 0;
 	viewRegion.end = values.size();
+	timer.restart();
 	updateSelection();
+	bscDebugLog("Energy draw: selection computed in %lld ms.", timer.elapsed());
+	timer.restart();
 	refreshSeries();
+	bscDebugLog("Energy draw: series refreshed in %lld ms.", timer.elapsed());
 	update();
 }
 
@@ -120,12 +174,18 @@ void CEnergyDraw::changeCutOff(int val){
 void CEnergyDraw::updateSelection(){
 	selection.clear();
 	int start = -1;
-	for (uint i=0; i<powers.size(); ++i){
+	const size_t updateStep = std::max<size_t>(1, powers.size() / 100);
+	const size_t logStep = std::max<size_t>(1, powers.size() / 10);
+	for (size_t i=0; i<powers.size(); ++i){
 		if (powers[i] > cutOff && start == -1){
 			start = i*DELTA;
 		} else if (powers[i] < cutOff && start != -1){
 			selection.push_back(sRegion(start, i*DELTA-1));
 			start = -1;
+		}
+		bscProcessEvents(i, updateStep);
+		if (bscDebugEnabled() && i % logStep == 0) {
+			bscDebugLog("Energy draw: selection %zu/%zu.", i, powers.size());
 		}
 	}
 	if (start != -1) {
@@ -167,9 +227,15 @@ void CEnergyDraw::refreshSeries(){
 		return;
 	}
 	series->clear();
+	const size_t updateStep = std::max<size_t>(1, powers.size() / 100);
+	const size_t logStep = std::max<size_t>(1, powers.size() / 10);
 	for (size_t i = 0; i < powers.size(); ++i){
 		double x = (i * DELTA) / 44100.0;
 		series->append(x, powers[i]);
+		bscProcessEvents(i, updateStep);
+		if (bscDebugEnabled() && i % logStep == 0) {
+			bscDebugLog("Energy draw: series %zu/%zu.", i, powers.size());
+		}
 	}
 	if (viewRegion.end > viewRegion.start){
 		axisX->setRange(viewRegion.start / 44100.0, viewRegion.end / 44100.0);
