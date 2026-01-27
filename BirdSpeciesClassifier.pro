@@ -26,9 +26,11 @@ macx {
 }
 win32 {
 	LIBS += -ldsound
-	LIBS += -LF:\Programy\msys\1.0\lib -LF:\Programy\msys\1.0\local\lib
-	INCLUDEPATH += F:\Programy\msys\1.0\local\include
-	INCLUDEPATH += F:\Programy\msys\1.0\include
+	# Optional: set MSYS_ROOT to your MSYS install (e.g., C:/msys64)
+	# MSYS_ROOT = $$ENV{MSYS_ROOT}
+	# LIBS += -L$${MSYS_ROOT}/lib -L$${MSYS_ROOT}/local/lib
+	# INCLUDEPATH += $${MSYS_ROOT}/local/include
+	# INCLUDEPATH += $${MSYS_ROOT}/include
 	OBJECTS_DIR = bin\
 }
 

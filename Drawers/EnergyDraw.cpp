@@ -1,5 +1,5 @@
 /*
-	 QTDetection, bird voice visualization and comaprison.
+	 QTDetection, bird voice visualization and comparison.
 	 Copyright (C) 2006 Roman Kamyk.
 
 	 This program is free software; you can redistribute it and/or

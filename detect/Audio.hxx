@@ -1,5 +1,5 @@
 /*
-	QTDetection, bird voice visualization and comaprison.
+	QTDetection, bird voice visualization and comparison.
 	Copyright (C) 2006 Roman Kamyk.
 	 
 	This program is free software; you can redistribute it and/or
@@ -42,13 +42,6 @@ typedef unsigned int uint;
 
 const double PI = 3.1415926535f;
 const double DOUBLE_BIG = 1e10;
-//
-// const uint FIRST_FREQ = 24;
-// const uint LAST_FREQ = 128; //without it (last freq is FREQ[127]) :(
-// const uint COUNT_FREQ = LAST_FREQ-FIRST_FREQ;
-// const uint FFT_SIZE = 512;
-// const uint SEGMENT_FRAMES = 200;
-//
 const uint FIRST_FREQ = 12;
 const uint LAST_FREQ = 64; //without it (last freq is FREQ[63]) :(
 const uint COUNT_FREQ = LAST_FREQ-FIRST_FREQ;

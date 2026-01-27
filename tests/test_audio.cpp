@@ -29,19 +29,15 @@ std::unique_ptr<CSample> makeSample(uint birdId, uint sampleId, const std::strin
 
 struct SnrMinGuard {
     explicit SnrMinGuard(double value)
-        : previousConfig(AudioConfig::getInstance().snrMin),
-          previousGlobal(SNR_MIN) {
+        : previousConfig(AudioConfig::getInstance().snrMin) {
         AudioConfig::getInstance().snrMin = value;
-        SNR_MIN = value;
     }
 
     ~SnrMinGuard() {
         AudioConfig::getInstance().snrMin = previousConfig;
-        SNR_MIN = previousGlobal;
     }
 
     double previousConfig;
-    double previousGlobal;
 };
 }
 
