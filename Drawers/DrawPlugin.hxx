@@ -22,7 +22,7 @@
 
 #include <QObject>
 #include <QtPlugin>
-#include <QDesignerCustomWidgetInterface>
+#include <QtUiPlugin/QDesignerCustomWidgetInterface>
 #include "SignalDraw.hxx"
 #include "SpectroDraw.hxx"
 #include "EnergyDrawWidget.hxx"
