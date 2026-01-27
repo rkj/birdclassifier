@@ -91,9 +91,9 @@ void crossTest(vector<CSample*> &samples, uint split = 10){
 				determinant[won]++;
 				dobrze++;
 				match[won->getBirdId()]++;
-				Dprintf3("Trafiony zatopiony: %d (roznica: %f)\n", won->getBirdId().c_str(), diff);
+				Dprintf("Trafiony zatopiony: %u (roznica: %f)\n", won->getBirdId(), diff);
 			} else {
-				Dprintf4("Uuuupppsss... %s wziety za %s (roznica: %f)\n", ns[i][j]->getName().c_str(), won->getName().c_str(), diff);
+				Dprintf("Uuuupppsss... %s wziety za %s (roznica: %f)\n", ns[i][j]->getName().c_str(), won->getName().c_str(), diff);
 				if (diff >= CUTOFF){
 					mismatch[ns[i][j]->getBirdId()][0]++;
 				} else {
@@ -465,10 +465,7 @@ int main_detect(int argc, char *argv[]){
 				printf("No value!\n");
 				return 1;
 			}
-			// Update AudioConfig singleton instead of global variable
 			sscanf(argv[i], "%lg", &AudioConfig::getInstance().snrMin);
-			// Also update deprecated global for backward compatibility
-			SNR_MIN = AudioConfig::getInstance().snrMin;
 		} else if (strcmp(argv[i], "-saveLearning") == 0){
 			if (++i == argc){
 				printf("No filename!\n");

@@ -22,10 +22,9 @@
 #include <array>
 #include <cassert>
 #include <cstring>
+#include <stdexcept>
 
 using namespace std;
-
-double SNR_MIN = 3.0;
 
 CSignal::CSignal(const string& filename){
 	loadAudio(filename);
@@ -44,7 +43,7 @@ void CSignal::loadAudio(const string& filename){
 	const char * fn = filename.c_str();
 	SNDFILE* file = sf_open(fn, SFM_READ, &sf_info);
 	if (file == NULL){
-		throw string("File not found");
+		throw runtime_error("File not found: " + filename);
 	}
 	sampleRate = sf_info.samplerate;
 	size_t numFrames = sf_info.frames;
@@ -72,7 +71,7 @@ void CSignal::saveAudio(const string& filename){
 	sf_info.format = SF_FORMAT_WAV | SF_FORMAT_PCM_16 ;
 	SNDFILE* file = sf_open(filename.c_str(), SFM_WRITE, &sf_info);
 	if (file == NULL){
-		throw string("Unable to create file for writing audio");
+		throw runtime_error("Unable to create file for writing audio: " + filename);
 	}
 	sf_write_double(file, frames.data(), frames.size());
 	sf_close(file);
@@ -92,7 +91,7 @@ CSample::CSample(const string& filename, CFFT* fft) : CSignal(filename) {
 CSample::CSample(double* _frames, int n, uint _sampleRate, uint _id, uint start, uint end, uint _birdId, CFFT* fft){
 	if (n <= 0){
 		fprintf(stderr, "CSample: n <= 0\n");
-		throw exception();
+		throw runtime_error("CSample: n <= 0");
 	}
 	sampleRate = _sampleRate;
 	frames.assign(_frames, _frames + n);
@@ -112,7 +111,7 @@ CSample::CSample(double* _frames, int n, uint _sampleRate, uint _id, uint start,
 CSample::CSample(vector<double>& samples, int startS, int n, uint _sampleRate, uint _id, uint start, uint end, uint _birdId, CFFT* fft){
 	if (n <= 0){
 		fprintf(stderr, "CSample: n <= 0\n");
-		throw exception();
+		throw runtime_error("CSample: n <= 0");
 	}
 	sampleRate = _sampleRate;
 	frames.assign(samples.begin() + startS, samples.begin() + startS + n);
@@ -213,7 +212,7 @@ void CSample::normalize(){
 	// printf("Max: %f, min2: %f\n", maximum, minimum);
 	// printf("Max: %f, min: %f, avg: %f\n", maximum, minimum, minAvg);
 	double SNR = maximum - minimum;
-	// Use AudioConfig singleton instead of global SNR_MIN
+	// Use AudioConfig singleton for configurable threshold
 	if (SNR < AudioConfig::getInstance().snrMin){
 		isNull = true;
 	}
@@ -289,7 +288,7 @@ CAudio::CAudio(const string& filename) : CSignal(filename){
 					}
 					end = min (end + backSamples, (int)numFrames);
 					samples.push_back(std::make_unique<CSample>(frames.data() + start, end-start, sampleRate, ++id, start, end, birdid, &fft));
-					Dprintf3("Wycinam: %fs-%fs\n", 1.0*start/sampleRate, 1.0*end/sampleRate);
+					Dprintf("Wycinam: %fs-%fs\n", 1.0*start/sampleRate, 1.0*end/sampleRate);
 				}
 				start = -1;
 				end = -1;
@@ -301,8 +300,8 @@ CAudio::CAudio(const string& filename) : CSignal(filename){
 			samples.push_back(std::make_unique<CSample>(frames.data() + start, end-start, sampleRate, ++id, start, end, birdid, &fft));
 		}
 	}
-	Dprintf2("Sample: %s\n", filename.c_str());
-	Dprintf2("Found: %d samples\n", samples.size());
+	Dprintf("Sample: %s\n", filename.c_str());
+	Dprintf("Found: %d samples\n", samples.size());
 	// Clear frames vector to free memory (CSample objects have their own copies)
 	frames.clear();
 	frames.shrink_to_fit();
@@ -431,18 +430,16 @@ OrigFrequencies::~OrigFrequencies(){
 
 void saveSamples(vector<CSample*>& samples, string dir = "pociete/", bool frequencies = false){
 	try{
-		char buf[10];
 		for (uint i=0; i<samples.size(); i++){
-			sprintf(buf, "%d", i);
 			const string& name = samples[i]->getName();
-			string filename = dir + name + "." + buf;
+			string filename = dir + name + "." + to_string(i);
 			if (frequencies){
 				// samples[i]->saveFrequencies(filename + ".freq");
 			}
 			// samples[i]->saveAudio(filename + ".wav");
 		}
-	} catch (string& s){
-		printf("Exception: %s\n", s.c_str());
+	} catch (const exception& ex){
+		printf("Exception: %s\n", ex.what());
 	}
 }
 
@@ -454,22 +451,20 @@ LAST_FREQ - uint32
 frequencies amount - uint32
 */
 void CSample::saveFrequencies(const string& filename){
-	FILE* file = fopen(filename.c_str(), "wb");
-	if (file == NULL){
+	ofstream file(filename, ios::binary);
+	if (!file){
 		fprintf(stderr, "Unable to create file: %s\n", filename.c_str());
 		return;
 	}
 	uint tmp = 1;
-	fwrite(&FFT_SIZE, sizeof(FFT_SIZE), 1, file);
-	fwrite(&FIRST_FREQ, sizeof(FIRST_FREQ), 1, file);
-	fwrite(&LAST_FREQ, sizeof(LAST_FREQ), 1, file);
-	fwrite(&tmp, sizeof(int), 1, file);
-	if (saveFrequencies(file) != 0){
-		fclose(file);
+	file.write(reinterpret_cast<const char*>(&FFT_SIZE), sizeof(FFT_SIZE));
+	file.write(reinterpret_cast<const char*>(&FIRST_FREQ), sizeof(FIRST_FREQ));
+	file.write(reinterpret_cast<const char*>(&LAST_FREQ), sizeof(LAST_FREQ));
+	file.write(reinterpret_cast<const char*>(&tmp), sizeof(tmp));
+	if (!file || saveFrequencies(file) != 0){
 		fprintf(stderr, "Error writting to file: %s\n", filename.c_str());
 		return;
 	}
-	fclose(file);
 }
 /*
 FREQ_COUNT - uint32
@@ -477,17 +472,21 @@ birdid - uint32
 sampleid - uint32
 frequencies
 */
-int CSample::saveFrequencies(FILE * file){
+int CSample::saveFrequencies(ostream& out){
 	uint freqCount = static_cast<uint>(frequencies.size());
-	fwrite(&freqCount, sizeof(freqCount), 1, file);
-	fwrite(&birdId, sizeof(birdId), 1, file);
-	fwrite(&id, sizeof(id), 1, file);
+	out.write(reinterpret_cast<const char*>(&freqCount), sizeof(freqCount));
+	out.write(reinterpret_cast<const char*>(&birdId), sizeof(birdId));
+	out.write(reinterpret_cast<const char*>(&id), sizeof(id));
+	if (!out){
+		return -1;
+	}
 	for (size_t i=0; i<frequencies.size(); ++i){
 		uint freqs[COUNT_FREQ];
 		for (uint j=0; j<COUNT_FREQ; ++j){
 			freqs[j] = (int)(frequencies[i].freq[j]*4294967295u);
 		}
-		if (COUNT_FREQ != fwrite(freqs, sizeof(uint), COUNT_FREQ, file)){
+		out.write(reinterpret_cast<const char*>(freqs), sizeof(uint) * COUNT_FREQ);
+		if (!out){
 			return -1;
 		}
 	}
@@ -495,24 +494,26 @@ int CSample::saveFrequencies(FILE * file){
 }
 
 void saveSamplesToFile(vector<CSample*>& learning, const char* filename){
-	FILE* file = fopen(filename, "wb");
-	if (file == NULL){
+	ofstream file(filename, ios::binary);
+	if (!file){
 		fprintf(stderr, "Unable to create file: %s\n", filename);
 		return;
 	}
 	uint tmp = learning.size();
-	fwrite(&FFT_SIZE, sizeof(FFT_SIZE), 1, file);
-	fwrite(&FIRST_FREQ, sizeof(FIRST_FREQ), 1, file);
-	fwrite(&LAST_FREQ, sizeof(LAST_FREQ), 1, file);
-	fwrite(&tmp, sizeof(int), 1, file);
+	file.write(reinterpret_cast<const char*>(&FFT_SIZE), sizeof(FFT_SIZE));
+	file.write(reinterpret_cast<const char*>(&FIRST_FREQ), sizeof(FIRST_FREQ));
+	file.write(reinterpret_cast<const char*>(&LAST_FREQ), sizeof(LAST_FREQ));
+	file.write(reinterpret_cast<const char*>(&tmp), sizeof(tmp));
+	if (!file){
+		fprintf(stderr, "Error writting to file: %s\n", filename);
+		return;
+	}
 	for (uint i=0; i<learning.size(); i++){
 		if (learning[i]->saveFrequencies(file) != 0){
-			fclose(file);
 			fprintf(stderr, "Error writting to file: %s\n", filename);
 			return;
 		}
 	}
-	fclose(file);
 }
 
 vector<std::unique_ptr<CSample>> readLearningFromFile(const char* filename){

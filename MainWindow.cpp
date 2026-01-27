@@ -33,6 +33,7 @@
 #include <cstdio>
 #include <cstdarg>
 #include <cstdlib>
+#include <stdexcept>
 
 using namespace std;
 QMutex samplesMutex;
@@ -259,7 +260,7 @@ void MainWindow::loadClicked(){
 		loadedFile = CFileFactory::createCFile(filename.toStdString());
 		if (!loadedFile){
 			fprintf(stderr, "Unable to open file [NULL returned]\n");
-			throw exception();
+			throw std::runtime_error("Unable to open file");
 		}
 		int size = loadedFile->framesLeft();
 		bscDebugLog("GUI load: frames=%d, sampleRate=%u.", size, loadedFile->getSampleRate());

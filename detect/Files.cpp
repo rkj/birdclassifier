@@ -261,7 +261,7 @@ CWaveFile::CWaveFile(const string& filename, bool emitErrors) : CFile(filename){
 		if (emitErrors) {
 			fprintf(stderr, "Error opening file '%s': %s\n", filename.c_str(), sf_strerror(NULL));
 		}
-		throw exception();
+		throw runtime_error("Failed to open audio file: " + filename);
 	}
 	framesCount = sf_info.frames;
 	sampleRate = sf_info.samplerate;
@@ -307,6 +307,6 @@ std::unique_ptr<CFile> CFileFactory::createCFile(const string& filename){
 		return decodeMp3Fallback(filename);
 	} catch (const std::exception& ex) {
 		fprintf(stderr, "Error opening file '%s': %s\n", filename.c_str(), ex.what());
-		throw exception();
+		throw runtime_error("Failed to open audio file: " + filename);
 	}
 }

@@ -20,17 +20,19 @@
 #ifndef _HXX_DETECT
 #define _HXX_DETECT
 
+#include <cstdio>
+#include <cstdarg>
+
+inline void Dprintf(const char* fmt, ...) {
 #ifdef _DEBUG
-	#define Dprintf1(x) fprintf(stderr, x);
-	#define Dprintf2(x,y) fprintf(stderr, x, y)
-	#define Dprintf3(x,y, z) fprintf(stderr, x, y, z)
-	#define Dprintf4(x,y, z, a) fprintf(stderr, x, y, z, a)
+	va_list args;
+	va_start(args, fmt);
+	std::vfprintf(stderr, fmt, args);
+	va_end(args);
 #else
-	#define Dprintf1(x) 
-	#define Dprintf2(x,y)
-	#define Dprintf3(x,y, z)
-	#define Dprintf4(x,y, z, a) 
+	(void)fmt;
 #endif
+}
 
 #include "Audio.hxx"
 #include <memory>

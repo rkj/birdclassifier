@@ -79,10 +79,6 @@ public:
 	AudioConfig& operator=(AudioConfig&&) = delete;
 };
 
-// Deprecated: Use AudioConfig::getInstance().snrMin instead
-// Kept for backward compatibility with existing code
-extern double SNR_MIN;
-
 const char* birdPolishNameFromId(uint id);
 const char* birdLatinNameFromId(uint id);
 const char* birdShortNameFromId(uint id);
@@ -222,7 +218,7 @@ class CSignal {
 		size_t getFramesCount() const {
 			return frames.size();
 		}
-		~CSignal() = default;
+		virtual ~CSignal() = default;
 		CSignal() = default;
 		CSignal(const CSignal&) = default;
 		CSignal& operator=(const CSignal&) = default;
@@ -236,7 +232,7 @@ class CSample : public CSignal {
 		void consume(CSample& other);
 		double differ(CSample& other);
 		void saveFrequencies(const std::string& filename);
-		int saveFrequencies(FILE *);
+		int saveFrequencies(std::ostream& out);
 		void saveFrequenciesTxt(const std::string& filename);
 		CSample(const CSample&);
 		explicit CSample(const std::string& filename, CFFT* fft = nullptr);
