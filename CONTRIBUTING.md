@@ -403,7 +403,7 @@ What actually happens
 - OS: [e.g., Ubuntu 20.04]
 - Compiler: [e.g., GCC 9.3.0]
 - Qt Version: [e.g., Qt 4.8.7]
-- BSC Version: [e.g., 0.83]
+- BSC Version: [e.g., 0.9.0]
 
 ## Additional Context
 - Error messages
@@ -553,7 +553,7 @@ TEST(AudioTest, ComputePowerBasic) {
 
 1. Update version in `.pro` file
 2. Update CHANGELOG
-3. Tag release: `git tag -a v0.84 -m "Release 0.84"`
+3. Tag release: `git tag -a v0.9.0 -m "Release 0.9.0"`
 4. Build binaries for all platforms
 5. Create GitHub release
 6. Update documentation

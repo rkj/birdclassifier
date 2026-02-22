@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.14)
-project(BirdSpeciesClassifier VERSION 0.83 LANGUAGES CXX C)
+project(BirdSpeciesClassifier VERSION 0.9.0 LANGUAGES CXX C)
 
 # Set C++ standard
 set(CMAKE_CXX_STANDARD 17)

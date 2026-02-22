@@ -872,4 +872,4 @@ For contribution guidelines, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 **Document Version**: 1.0
 **Last Updated**: 2026-01-18
-**Corresponds to**: BSC v0.83
+**Corresponds to**: BSC v0.9.0

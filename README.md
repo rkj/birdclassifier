@@ -1,7 +1,7 @@
 # Bird Species Classifier (BSC)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-0.83-green.svg)](https://github.com/yourusername/birdclassifier)
+[![Version](https://img.shields.io/badge/version-0.9.0-green.svg)](https://github.com/yourusername/birdclassifier)
 
 > **Acoustic bird species recognition using pattern matching and nearest neighbor classification**
 
@@ -437,6 +437,13 @@ For issues, questions, or suggestions:
 
 ## Changelog
 
+### Version 0.9.0 (2026-02-22)
+- Ported GUI from Qt4 to Qt6
+- Modernized core C++ code and memory management
+- Added/expanded automated tests and stabilized detection tests
+- Adopted Bazel build workflow and updated installation docs
+- Improved audio handling, error resilience, and GUI playback behavior
+
 ### Version 0.83 (2006-07-10)
 - Initial public release
 - GUI and CLI modes
@@ -447,4 +454,4 @@ For issues, questions, or suggestions:
 
 ---
 
-**Last Updated**: 2026-01-18
+**Last Updated**: 2026-02-22

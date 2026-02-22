@@ -423,7 +423,7 @@ void print_help(char* name){
 }
 
 void print_version(){
-	printf("Bird Species Classifier (BSC) version 0.83\n");
+	printf("Bird Species Classifier (BSC) version 0.9.0\n");
 	printf("Author: Roman Kamyk <rkj@go2.pl>\n");
 	printf("License: MIT. See LICENSE file.\n");
 }
