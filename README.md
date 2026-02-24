@@ -7,8 +7,9 @@
 
 Bird Species Classifier is a cross-platform C++/Qt application that identifies bird species based on their vocalizations using digital signal processing and machine learning techniques.
 
-![BSC Screenshot Placeholder](img/screenshot.png)
-*Note: Add actual screenshot when available*
+<p align="center">
+  <img src="BirdSpeciesClassifier.png" alt="Bird Species Classifier mascot logo" width="480">
+</p>
 
 ---
 
